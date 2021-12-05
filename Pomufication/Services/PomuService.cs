@@ -82,9 +82,9 @@ public class PomuService
 
 	private async void Sync(object? state)
 	{
-#if DEBUG
+/*#if DEBUG
 		return;
-#endif
+#endif*/
 		var streams = await CheckForNewStreams();
 		for (int i = 0; i < streams.Count; i++)
 		{
