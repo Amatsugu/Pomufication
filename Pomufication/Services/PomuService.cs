@@ -11,14 +11,15 @@ namespace Pomufication.Services;
 
 public class PomuService
 {
+	public PomuConfig Config { get; private set; }
 	private readonly Pomufier _pomufier;
 	private readonly ILogger<PomuService> _logger;
 	private readonly YoutubeClient _youtube;
-	private PomuConfig Config;
 
 	private List<ActiveDownload> _activeDownloads;
 
 	private Timer _timer;
+
 
 	public PomuService(Pomufier pomufier, ILogger<PomuService> logger)
 	{
@@ -28,6 +29,7 @@ public class PomuService
 		_activeDownloads = new List<ActiveDownload>();
 		Config = LoadConfig();
 		_timer = StartTimer();
+
 	}
 
 	private record ActiveDownload(string Url, Process Process);
@@ -36,12 +38,16 @@ public class PomuService
 	{
 		return new Timer(Sync, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 	}
+	internal ValueTask<YoutubeExplode.Channels.Channel> GetChannelAsync(string channelId)
+	{
+		return _youtube.Channels.GetAsync(channelId);
+	}
 
 	private async Task<Process> StartStreamlinkAsync(string url)
 	{
 		var video = await _youtube.Videos.GetAsync(url);
 
-		var fileName = CleanTitle(video.Title);
+		var fileName = CleanTitle(video);
 
 		var processInfo = new ProcessStartInfo
 		{
@@ -62,10 +68,10 @@ public class PomuService
 		return null;
 	}
 
-	private string CleanTitle(string value)
+	private string CleanTitle(YoutubeExplode.Videos.Video video)
 	{
 		//TODO: Remove characters that are invalid for file names
-		return value;
+		return $"{video.Author.Title}_{video.Id}";
 	}
 
 	public void SetConfig(PomuConfig config)
@@ -76,7 +82,10 @@ public class PomuService
 
 	private async void Sync(object? state)
 	{
-		var streams = await CheckForNewVideos();
+#if DEBUG
+		return;
+#endif
+		var streams = await CheckForNewStreams();
 		for (int i = 0; i < streams.Count; i++)
 		{
 			var url = streams[i];
@@ -101,17 +110,19 @@ public class PomuService
 		}
 	}
 
-	public async Task<List<string>> CheckForNewVideos()
+	public async Task<List<string>> CheckForNewStreams()
 	{
 		var foundStreams = new List<string>();
 
 		for (int i = 0; i < Config.Channels.Count; i++)
 		{
 			var channelConfig = Config.Channels[i];
+			if (!channelConfig.Enabled)
+				continue;
 			var channel = await _youtube.Channels.GetAsync(channelConfig.ChannelId);
 			if (channel == null)
 			{
-				_logger.LogWarning("Could not find a channel with id '{Id}' ({ChannelName}). Skipping...", channelConfig.ChannelId, channelConfig.ChannelName);
+				_logger.LogWarning("Could not find a channel with id '{Id}'. Skipping...", channelConfig.ChannelId);
 				continue;
 			}
 			var upcomingStreams = await _youtube.Search.GetVideosAsync(channel.Title)

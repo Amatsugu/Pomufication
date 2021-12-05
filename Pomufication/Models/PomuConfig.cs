@@ -20,7 +20,6 @@ public class PomuConfig
 public class Channel
 {
 	public string ChannelId { get; set; }
-	public string? ChannelName { get; set; }
 	public bool Enabled { get; set; }
 	public List<Keyword> FilterKeywords { get; set; }
 
@@ -31,10 +30,9 @@ public class Channel
 		FilterKeywords = new List<Keyword>();
 	}
 
-	public Channel(string channelId, string name, List<Keyword>? keywords = null)
+	public Channel(string channelId, List<Keyword>? keywords = null)
 	{
 		ChannelId = channelId;
-		ChannelName = name;
 		Enabled = true;
 		FilterKeywords = keywords ?? new List<Keyword>();
 	}
@@ -60,6 +58,8 @@ public class Keyword
 
 	public bool Match(string value)
 	{
+		if (!Enabled)
+			return true;
 		return Type switch
 		{
 			KeywordType.Word => value.Contains(Filter, Comparison),

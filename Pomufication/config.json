@@ -6,7 +6,97 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "歌枠",
+					"Filter": "歌",
+					"Comparison": 5,
+					"Type": 0
+				}
+			]
+		},
+		{
+			"ChannelId": "UCMwGHR0BTZuLsmjY_NT5Pwg",
+			"Enabled": true,
+			"FilterKeywords": [
+				{
+					"Enabled": true,
+					"Filter": "Karaoke",
+					"Comparison": 5,
+					"Type": 0
+				},
+				{
+					"Enabled": true,
+					"Filter": "Unarchived",
+					"Comparison": 5,
+					"Type": 0
+				}
+			]
+		},
+		{
+			"ChannelId": "UC8rcEBzJSleTkf_-agPM20g",
+			"Enabled": true,
+			"FilterKeywords": [
+				{
+					"Enabled": true,
+					"Filter": "Karaoke",
+					"Comparison": 5,
+					"Type": 0
+				},
+				{
+					"Enabled": true,
+					"Filter": "Unarchived",
+					"Comparison": 5,
+					"Type": 0
+				}
+			]
+		},
+		{
+			"ChannelId": "UCR6qhsLpn62WVxCBK1dkLow",
+			"Enabled": true,
+			"FilterKeywords": [
+				{
+					"Enabled": true,
+					"Filter": "Karaoke",
+					"Comparison": 5,
+					"Type": 0
+				},
+				{
+					"Enabled": true,
+					"Filter": "Unarchived",
+					"Comparison": 5,
+					"Type": 0
+				}
+			]
+		},
+		{
+			"ChannelId": "UCP4nMSTdwU1KqYWu3UH5DHQ",
+			"Enabled": true,
+			"FilterKeywords": [
+				{
+					"Enabled": true,
+					"Filter": "Karaoke",
+					"Comparison": 5,
+					"Type": 0
+				},
+				{
+					"Enabled": true,
+					"Filter": "Unarchived",
+					"Comparison": 5,
+					"Type": 0
+				}
+			]
+		},
+		{
+			"ChannelId": "UCNVEsYbiZjH5QLmGeSgTSzg",
+			"Enabled": true,
+			"FilterKeywords": [
+				{
+					"Enabled": true,
+					"Filter": "歌",
+					"Comparison": 5,
+					"Type": 0
+				},
+				{
+					"Enabled": true,
+					"Filter": "Unarchived",
 					"Comparison": 5,
 					"Type": 0
 				}

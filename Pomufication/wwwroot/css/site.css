@@ -4,7 +4,7 @@ html {
 
 @media (min-width: 768px) {
   html {
-    font-size: 16px;
+	font-size: 16px;
   }
 }
 
@@ -16,3 +16,81 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+:root
+{
+	--mainAccent:#ff0064;
+	--faintAccent:#ffb0cf;
+}
+
+a[role=button]
+{
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	padding:5px;
+	border:1px solid var(--mainAccent);
+}
+
+
+#channelList
+{
+	display:flex;
+	flex-direction:column;
+	grid-gap:5px;
+}
+
+.channel
+{
+	display:grid;
+	grid-template-rows: 100px 1fr;
+	border: 1px solid var(--faintAccent);
+}
+
+	.channel .head {
+		display: grid;
+		grid-template-columns: 100px 1fr 150px;
+		grid-template-rows: 100px;
+		grid-gap: 10px;
+	}
+	.channel .head .icon
+	{
+		background-position:center;
+		background-size:cover;
+		background-repeat:no-repeat;
+	}
+	
+	.channel .head .name
+	{
+		font-size:2rem;
+		display:flex;
+		align-items:center;
+	}
+		.channel .head .name a {
+			text-decoration:none;
+			color:var(--mainAccent);
+		}
+
+
+	.channel .filters {
+		border-left: 2px solid var(--mainAccent);
+		padding: 10px;
+	}
+
+	.channel .filters .filterList
+	{
+		display: flex;
+		flex-direction: column;
+		grid-gap: 5px;
+		margin:5px 0;
+	}
+
+	.filters .keyword
+	{
+		display:grid;
+		grid-template-columns:40px 1fr 1fr 40px;
+		grid-gap:5px;
+		padding:10px;
+		background-color:var(--faintAccent);
+
+	}

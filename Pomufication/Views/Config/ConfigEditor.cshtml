@@ -2,9 +2,11 @@
 	For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
+	var lookup = ViewData["lookup"] as Dictionary<string, YoutubeExplode.Channels.Channel> ?? new Dictionary<string, YoutubeExplode.Channels.Channel>();
 }
 @model PomuConfig
 
+<h1>Configure Channels</h1>
 <div id="channelList">
 	@if(Model == null || Model.Channels.Count == 0)
 	{
@@ -15,31 +17,54 @@
 		@for (var i = 0; i < Model.Channels.Count; i++)
 		{
 			var channel = Model.Channels[i];
+
+			var channelName = "Unknown";
+			var link = "";
+			var thumb = "";
+			if(lookup.ContainsKey(channel.ChannelId))
+			{
+				var c = lookup[channel.ChannelId];
+				channelName = c.Title;
+				link = c.Url;
+				thumb = c.Thumbnails.First().Url;
+			}
 			<div class="channel">
 				<div class="head">
-					<div class="icon"></div>
-					<div class="name"><a href="#">@channel.ChannelName</a></div>
+					<div class="icon" style="background-image:url(@thumb)"></div>
+					<div class="name"><a href="@link" target="_blank">@channelName</a></div>
+					<a role="button">Select Channel</a>
 				</div>
 				<div class="filters">
+					<h3>Filters</h3>
+					<div class="filterList">
 					@for (var j = 0; j < channel.FilterKeywords.Count; j++)
 					{
 						var filter = channel.FilterKeywords[j];
 						<div class="keyword">
-							<input tpye="text" name="filter">
+							@if(filter.Enabled)
+							{
+								<input type="checkbox" name="enabled" checked>
+							}else{
+								<input type="checkbox" name="enabled">
+							}
+							<input type="text" name="filter" value="@filter.Filter">
 							<select name="">
-								<option value="Word"></option>
-								<option value="Regex"></option>
+								<option value="Word">Word</option>
+								<option value="Regex">Regex</option>
 							</select>
+							<a role="button">x</a>
 						</div>
 					}
+					</div>
+					<a role="button">Add Filter</a>
 				</div>
 			</div>
 		}
 	}
-	<a role="button">Add Button</a>
+	<a role="button">Add Channel</a>
 </div>
 
-<div id="channelTemplate">
+<div id="channelTemplate" style="display:none">
 	<div class="channel">
 		<div class="head">
 			<div class="icon"></div>
@@ -49,12 +74,14 @@
 		</div>
 	</div>
 </div>
-<div id="keywordTemplate">
+<div id="keywordTemplate" style="display:none">
 	<div class="keyword">
 		<input tpye="text" name="filter">
 		<select name="">
 			<option value="Word"></option>
 			<option value="Regex"></option>
 		</select>
+		<a role="button">Add Filter</a>
 	</div>
+	<a role="button">Add Filter</a>
 </div>
