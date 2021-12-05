@@ -1,0 +1,16 @@
+﻿{
+	"Channels": [
+		{
+			"ChannelId": "UCp-5t9SrOQwXMU7iIjQfARg",
+			"Enabled": true,
+			"FilterKeywords": [
+				{
+					"Enabled": true,
+					"Filter": "歌枠",
+					"Comparison": 5,
+					"Type": 0
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pomu", "Pomu\Pomu.csproj", "{381F8294-E66D-4F80-8EFB-A76676A737E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomufication", "Pomufication\Pomufication.csproj", "{2330B953-3E7F-4615-8A67-E23CC069C1BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{381F8294-E66D-4F80-8EFB-A76676A737E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{381F8294-E66D-4F80-8EFB-A76676A737E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{381F8294-E66D-4F80-8EFB-A76676A737E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{381F8294-E66D-4F80-8EFB-A76676A737E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2330B953-3E7F-4615-8A67-E23CC069C1BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2330B953-3E7F-4615-8A67-E23CC069C1BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2330B953-3E7F-4615-8A67-E23CC069C1BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2330B953-3E7F-4615-8A67-E23CC069C1BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AF6A15F8-7ED7-48DC-BCB8-4446FB56CA44}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,60 @@
+﻿@*
+	For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model PomuConfig
+
+<div id="channelList">
+	@if(Model == null || Model.Channels.Count == 0)
+	{
+		<div>There are no Channels <a role="button">Add Channel</a></div>
+	}else
+	{
+	
+		@for (var i = 0; i < Model.Channels.Count; i++)
+		{
+			var channel = Model.Channels[i];
+			<div class="channel">
+				<div class="head">
+					<div class="icon"></div>
+					<div class="name"><a href="#">@channel.ChannelName</a></div>
+				</div>
+				<div class="filters">
+					@for (var j = 0; j < channel.FilterKeywords.Count; j++)
+					{
+						var filter = channel.FilterKeywords[j];
+						<div class="keyword">
+							<input tpye="text" name="filter">
+							<select name="">
+								<option value="Word"></option>
+								<option value="Regex"></option>
+							</select>
+						</div>
+					}
+				</div>
+			</div>
+		}
+	}
+	<a role="button">Add Button</a>
+</div>
+
+<div id="channelTemplate">
+	<div class="channel">
+		<div class="head">
+			<div class="icon"></div>
+			<div class="name"><a href="#"></a></div>
+		</div>
+		<div class="filters">
+		</div>
+	</div>
+</div>
+<div id="keywordTemplate">
+	<div class="keyword">
+		<input tpye="text" name="filter">
+		<select name="">
+			<option value="Word"></option>
+			<option value="Regex"></option>
+		</select>
+	</div>
+</div>
