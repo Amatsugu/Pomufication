@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using Pomufication.Models;
 using Pomufication.Services;
 
 namespace Pomufication.Controllers;
@@ -17,19 +18,27 @@ public class ConfigController : Controller
 	[HttpGet]
 	public async Task<IActionResult> ConfigureAsync()
 	{
-		var channelLookup = new Dictionary<string, YoutubeExplode.Channels.Channel>();
-
+		var viewModels = new List<ChannelViewModel>();
 		for (int i = 0; i < _pomuService.Config.Channels.Count; i++)
 		{
-			var channel = _pomuService.Config.Channels[i];
-			var c = await _pomuService.GetChannelAsync(channel.ChannelId);
-			if (c == null)
-				continue;
-			channelLookup.Add(channel.ChannelId, c);
+			var channelConfig = _pomuService.Config.Channels[i];
+			var channel = await _pomuService.GetChannelAsync(channelConfig.ChannelId);
+			viewModels.Add(new ChannelViewModel(channelConfig, channel));
 		}
 
-		ViewData["lookup"] = channelLookup;
+		return View("ConfigEditor", viewModels);
+	}
 
-		return View("ConfigEditor", _pomuService.Config);
+	[HttpGet("channel/{id}")]
+	public async Task<IActionResult> ConfigureChannelAsync(string id)
+	{
+		var channelConfig = _pomuService.Config.Channels.FirstOrDefault(c => c.ChannelId == id);
+		if(channelConfig == null)
+			return NotFound();
+		
+		var channel = await _pomuService.GetChannelAsync(channelConfig.ChannelId);
+
+
+		return View("EditChannel", new ChannelViewModel(channelConfig, channel)) ;
 	}
 }

@@ -46,30 +46,37 @@ a[role=button]
 	grid-template-rows: 100px 1fr;
 	border: 1px solid var(--faintAccent);
 }
+.channelEntry {
+	display: grid;
+	grid-template-rows: 100px;
+	border: 1px solid var(--faintAccent);
+}
 
-	.channel .head {
+	.channel .head,
+	.channelEntry .head {
 		display: grid;
 		grid-template-columns: 100px 1fr 150px;
 		grid-template-rows: 100px;
-		grid-gap: 10px;
+		gap: 10px;
 	}
-	.channel .head .icon
-	{
-		background-position:center;
-		background-size:cover;
-		background-repeat:no-repeat;
-	}
-	
-	.channel .head .name
-	{
-		font-size:2rem;
-		display:flex;
-		align-items:center;
-	}
-		.channel .head .name a {
-			text-decoration:none;
-			color:var(--mainAccent);
+		.channel .head .icon,
+		.channelEntry .head .icon {
+			background-position: center;
+			background-size: cover;
+			background-repeat: no-repeat;
 		}
+
+		.channel .head .name,
+		.channelEntry .head .name{
+			font-size: 2rem;
+			display: flex;
+			align-items: center;
+		}
+			.channel .head .name a,
+			.channelEntry .head a{
+				text-decoration: none;
+				color: var(--mainAccent);
+			}
 
 
 	.channel .filters {
@@ -81,7 +88,7 @@ a[role=button]
 	{
 		display: flex;
 		flex-direction: column;
-		grid-gap: 5px;
+		gap: 5px;
 		margin:5px 0;
 	}
 

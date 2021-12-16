@@ -36,7 +36,7 @@ public class PomuService
 
 	private Timer StartTimer()
 	{
-		return new Timer(Sync, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+		return new Timer(Sync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
 	}
 	internal ValueTask<YoutubeExplode.Channels.Channel> GetChannelAsync(string channelId)
 	{
@@ -82,6 +82,7 @@ public class PomuService
 
 	private async void Sync(object? state)
 	{
+		_logger.LogInformation("Starting Sync");
 /*#if DEBUG
 		return;
 #endif*/
@@ -125,6 +126,7 @@ public class PomuService
 				_logger.LogWarning("Could not find a channel with id '{Id}'. Skipping...", channelConfig.ChannelId);
 				continue;
 			}
+			_logger.LogInformation($"Checking for streams: {channel.Title}");
 			var upcomingStreams = await _youtube.Search.GetVideosAsync(channel.Title)
 				.Where(v => v.Author.ChannelId == channel.Id && v.Duration == null)
 				.ToListAsync();

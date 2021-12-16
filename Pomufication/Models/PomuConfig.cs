@@ -4,33 +4,33 @@ namespace Pomufication.Models;
 
 public class PomuConfig
 {
-	public List<Channel> Channels { get; set; }
+	public List<ChannelConfig> Channels { get; set; }
 
 	public PomuConfig()
 	{
-		Channels = new List<Channel>();
+		Channels = new List<ChannelConfig>();
 	}
 
-	public PomuConfig(List<Channel> channels)
+	public PomuConfig(List<ChannelConfig> channels)
 	{
 		Channels = channels;
 	}
 }
 
-public class Channel
+public class ChannelConfig
 {
 	public string ChannelId { get; set; }
 	public bool Enabled { get; set; }
 	public List<Keyword> FilterKeywords { get; set; }
 
-	public Channel()
+	public ChannelConfig()
 	{
 		ChannelId = string.Empty;
 		Enabled = false;
 		FilterKeywords = new List<Keyword>();
 	}
 
-	public Channel(string channelId, List<Keyword>? keywords = null)
+	public ChannelConfig(string channelId, List<Keyword>? keywords = null)
 	{
 		ChannelId = channelId;
 		Enabled = true;
@@ -58,6 +58,7 @@ public class Keyword
 
 	public bool Match(string value)
 	{
+		Console.WriteLine($"Checking '{value}' against '{Filter}'");
 		if (!Enabled)
 			return true;
 		return Type switch

@@ -1,62 +1,28 @@
-﻿@*
-	For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
 	var lookup = ViewData["lookup"] as Dictionary<string, YoutubeExplode.Channels.Channel> ?? new Dictionary<string, YoutubeExplode.Channels.Channel>();
+	ViewData["title"] = "Configure Channels";
 }
-@model PomuConfig
+@model List<ChannelViewModel>
 
 <h1>Configure Channels</h1>
 <div id="channelList">
-	@if(Model == null || Model.Channels.Count == 0)
+	@if(Model == null || Model.Count == 0)
 	{
 		<div>There are no Channels <a role="button">Add Channel</a></div>
 	}else
 	{
 	
-		@for (var i = 0; i < Model.Channels.Count; i++)
+		@for (var i = 0; i < Model.Count; i++)
 		{
-			var channel = Model.Channels[i];
-
-			var channelName = "Unknown";
-			var link = "";
-			var thumb = "";
-			if(lookup.ContainsKey(channel.ChannelId))
-			{
-				var c = lookup[channel.ChannelId];
-				channelName = c.Title;
-				link = c.Url;
-				thumb = c.Thumbnails.First().Url;
-			}
-			<div class="channel">
+			var cfg = Model[i];
+			var channelName = cfg.Channel?.Title ?? "Unknown";
+			var link = cfg.Channel?.Url ?? "";
+			var thumb = cfg.Channel?.Thumbnails.First().Url ?? "";
+			var channel = cfg.ChannelConfig;
+			<div class="channelEntry">
 				<div class="head">
 					<div class="icon" style="background-image:url(@thumb)"></div>
-					<div class="name"><a href="@link" target="_blank">@channelName</a></div>
-					<a role="button">Select Channel</a>
-				</div>
-				<div class="filters">
-					<h3>Filters</h3>
-					<div class="filterList">
-					@for (var j = 0; j < channel.FilterKeywords.Count; j++)
-					{
-						var filter = channel.FilterKeywords[j];
-						<div class="keyword">
-							@if(filter.Enabled)
-							{
-								<input type="checkbox" name="enabled" checked>
-							}else{
-								<input type="checkbox" name="enabled">
-							}
-							<input type="text" name="filter" value="@filter.Filter">
-							<select name="">
-								<option value="Word">Word</option>
-								<option value="Regex">Regex</option>
-							</select>
-							<a role="button">x</a>
-						</div>
-					}
-					</div>
-					<a role="button">Add Filter</a>
+					<div class="name"><a href="/config/channel/@channel.ChannelId">@channelName</a></div>
 				</div>
 			</div>
 		}

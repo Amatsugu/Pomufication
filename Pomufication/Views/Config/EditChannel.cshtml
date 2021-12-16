@@ -1,0 +1,44 @@
+﻿@model ChannelViewModel
+
+@{
+	if (Model == null)
+		return;	
+
+	var channelName = Model.Channel?.Title ?? "Unknown";
+	ViewData["title"] = $"Configure '{channelName}'";
+	var link = Model.Channel?.Url ?? "";
+	var thumb = Model.Channel?.Thumbnails.First().Url ?? "";
+	var channel = Model.ChannelConfig;
+}
+
+<div class="channel">
+	<div class="head">
+		<div class="icon" style="background-image:url(@thumb)"></div>
+		<div class="name"><a href="@link" target="_blank">@channelName</a></div>
+		<a role="button">Select Channel</a>
+	</div>
+	<div class="filters">
+		<h3>Filters</h3>
+		<div class="filterList">
+		@for (var j = 0; j < channel.FilterKeywords.Count; j++)
+		{
+			var filter = channel.FilterKeywords[j];
+			<div class="keyword">
+				@if(filter.Enabled)
+				{
+					<input type="checkbox" name="enabled" checked>
+				}else{
+					<input type="checkbox" name="enabled">
+				}
+				<input type="text" name="filter" value="@filter.Filter">
+				<select name="">
+					<option value="Word">Word</option>
+					<option value="Regex">Regex</option>
+				</select>
+				<a role="button">x</a>
+			</div>
+		}
+		</div>
+		<a role="button">Add Filter</a>
+	</div>
+</div>

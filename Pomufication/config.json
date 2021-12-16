@@ -85,18 +85,24 @@
 			]
 		},
 		{
+			"ChannelId": "UC3n5uGu18FoCy23ggWWp8tA",
+			"Enabled": true,
+			"FilterKeywords": [
+				{
+					"Enabled": true,
+					"Filter": "Unarchived",
+					"Comparison": 5,
+					"Type": 0
+				}
+			]
+		},
+		{
 			"ChannelId": "UCNVEsYbiZjH5QLmGeSgTSzg",
 			"Enabled": true,
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "歌",
-					"Comparison": 5,
-					"Type": 0
-				},
-				{
-					"Enabled": true,
-					"Filter": "Unarchived",
+					"Filter": "NoArchive",
 					"Comparison": 5,
 					"Type": 0
 				}
