@@ -70,8 +70,7 @@ public class PomuService
 
 	private string CleanTitle(YoutubeExplode.Videos.Video video)
 	{
-		//TODO: Remove characters that are invalid for file names
-		return $"{video.Author.Title}_{video.Id}";
+		return $"'{video.Author.Title}_{video.Id}'";
 	}
 
 	public void SetConfig(PomuConfig config)
@@ -83,9 +82,6 @@ public class PomuService
 	private async void Sync(object? state)
 	{
 		_logger.LogInformation("Starting Sync");
-/*#if DEBUG
-		return;
-#endif*/
 		var streams = await CheckForNewStreams();
 		for (int i = 0; i < streams.Count; i++)
 		{
