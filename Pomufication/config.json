@@ -6,7 +6,7 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "歌",
+					"Filters": [ "歌" ],
 					"Comparison": 5,
 					"Type": 0
 				}
@@ -18,13 +18,13 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "Karaoke",
+					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
 					"Type": 0
 				},
 				{
 					"Enabled": true,
-					"Filter": "Unarchived",
+					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
 					"Type": 0
 				}
@@ -36,13 +36,13 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "Karaoke",
+					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
 					"Type": 0
 				},
 				{
 					"Enabled": true,
-					"Filter": "Unarchived",
+					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
 					"Type": 0
 				}
@@ -54,13 +54,13 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "Karaoke",
+					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
 					"Type": 0
 				},
 				{
 					"Enabled": true,
-					"Filter": "Unarchived",
+					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
 					"Type": 0
 				}
@@ -72,13 +72,13 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "Karaoke",
+					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
 					"Type": 0
 				},
 				{
 					"Enabled": true,
-					"Filter": "Unarchived",
+					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
 					"Type": 0
 				}
@@ -90,7 +90,7 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "Unarchived",
+					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
 					"Type": 0
 				}
@@ -102,7 +102,7 @@
 			"FilterKeywords": [
 				{
 					"Enabled": true,
-					"Filter": "NoArchive",
+					"Filters": [ "NoArchive" ],
 					"Comparison": 5,
 					"Type": 0
 				}

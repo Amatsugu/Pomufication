@@ -40,7 +40,7 @@ public class ChannelConfig
 
 public class Keyword
 {
-	public string Filter { get; set; }
+	public string[] Filters { get; set; }
 	public bool Enabled { get; set; }
 	public StringComparison Comparison { get; set; } = StringComparison.OrdinalIgnoreCase;
 	public RegexOptions RegexOptions { get; set; }
@@ -48,23 +48,23 @@ public class Keyword
 
 	public Keyword()
 	{
-		Filter = string.Empty;
+		Filters = Array.Empty<string>();
 	}
 
-	public Keyword(string filter)
+	public Keyword(string[] filters)
 	{
-		Filter = filter;
+		Filters = filters;
 	}
 
 	public bool Match(string value)
 	{
-		Console.WriteLine($"Checking '{value}' against '{Filter}'");
+		Console.WriteLine($"Checking '{value}' against '{string.Join(",", Filters)}'");
 		if (!Enabled)
 			return true;
 		return Type switch
 		{
-			KeywordType.Word => value.Contains(Filter, Comparison),
-			KeywordType.Regex => Regex.Match(value, Filter, RegexOptions).Success,
+			KeywordType.Word => Filters.Any(f => value.Contains(f, Comparison)),
+			KeywordType.Regex => Filters.Any(f => Regex.Match(value, f, RegexOptions).Success),
 			_ => false
 		};
 	}

@@ -55,7 +55,7 @@ a[role=button]
 	.channel .head,
 	.channelEntry .head {
 		display: grid;
-		grid-template-columns: 100px 1fr 150px;
+		grid-template-columns: 100px 1fr 100px;
 		grid-template-rows: 100px;
 		gap: 10px;
 	}

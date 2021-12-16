@@ -9,7 +9,7 @@ using YoutubeExplode;
 
 namespace Pomufication.Services;
 
-public class PomuService
+public class PomuService : IDisposable
 {
 	public PomuConfig Config { get; private set; }
 	private readonly Pomufier _pomufier;
@@ -20,6 +20,7 @@ public class PomuService
 
 	private Timer _timer;
 
+	private bool _isSyncing;
 
 	public PomuService(Pomufier pomufier, ILogger<PomuService> logger)
 	{
@@ -29,7 +30,6 @@ public class PomuService
 		_activeDownloads = new List<ActiveDownload>();
 		Config = LoadConfig();
 		_timer = StartTimer();
-
 	}
 
 	private record ActiveDownload(string Url, Process Process);
@@ -38,6 +38,7 @@ public class PomuService
 	{
 		return new Timer(Sync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
 	}
+
 	internal ValueTask<YoutubeExplode.Channels.Channel> GetChannelAsync(string channelId)
 	{
 		return _youtube.Channels.GetAsync(channelId);
@@ -81,29 +82,43 @@ public class PomuService
 
 	private async void Sync(object? state)
 	{
-		_logger.LogInformation("Starting Sync");
-		var streams = await CheckForNewStreams();
-		for (int i = 0; i < streams.Count; i++)
+		if (_isSyncing)
+			return;
+		try
 		{
-			var url = streams[i];
-			try
+			_isSyncing = true;
+			_logger.LogInformation("Starting Sync");
+			var streams = await CheckForNewStreams();
+			for (int i = 0; i < streams.Count; i++)
 			{
-				if (_activeDownloads.Any(d => d.Url == url))
-					continue;
-				var download = await StartStreamlinkAsync(url);
-				_activeDownloads.Add(new ActiveDownload(url, download));
+				var url = streams[i];
+				try
+				{
+					if (_activeDownloads.Any(d => d.Url == url))
+						continue;
+					var download = await StartStreamlinkAsync(url);
+					_activeDownloads.Add(new ActiveDownload(url, download));
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to donwload stream. {url}", url);
+				}
 			}
-			catch (Exception ex)
+
+			for (int i = 0; i < _activeDownloads.Count; i++)
 			{
-				_logger.LogError(ex, "Failed to donwload stream. {url}", url);
+				var download = _activeDownloads[i];
+				if (download.Process.HasExited)
+					_activeDownloads.RemoveAt(i--);
 			}
 		}
-
-		for (int i = 0; i < _activeDownloads.Count; i++)
+		catch (Exception ex)
 		{
-			var download = _activeDownloads[i];
-			if (download.Process.HasExited)
-				_activeDownloads.RemoveAt(i--);
+			_logger.LogError(ex, "Syncing Failed");
+		}
+		finally
+		{
+			_isSyncing = false;
 		}
 	}
 
@@ -156,5 +171,10 @@ public class PomuService
 			File.WriteAllText("config.json", cfgJson);
 			return cfg;
 		}
+	}
+
+	public void Dispose()
+	{
+		((IDisposable)_timer).Dispose();
 	}
 }

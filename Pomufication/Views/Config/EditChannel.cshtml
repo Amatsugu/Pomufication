@@ -15,7 +15,7 @@
 	<div class="head">
 		<div class="icon" style="background-image:url(@thumb)"></div>
 		<div class="name"><a href="@link" target="_blank">@channelName</a></div>
-		<a role="button">Select Channel</a>
+		<a role="button">Delete</a>
 	</div>
 	<div class="filters">
 		<h3>Filters</h3>
@@ -30,7 +30,7 @@
 				}else{
 					<input type="checkbox" name="enabled">
 				}
-				<input type="text" name="filter" value="@filter.Filter">
+				<input type="text" name="filter" value="@string.Join(",", filter.Filters)">
 				<select name="">
 					<option value="Word">Word</option>
 					<option value="Regex">Regex</option>
