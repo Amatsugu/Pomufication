@@ -10,8 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 #else
 builder.Services.AddControllersWithViews();
 #endif
-
-var pomufier = Pomu.Pomufier.CreateFromCookieFile(@"D:\Downloads\youtube.com_cookies.txt");
+var cookiesFile = @"D:\Downloads\youtube.com_cookies.txt";
+var pomufier = File.Exists(cookiesFile) ? Pomu.Pomufier.CreateFromCookieFile(cookiesFile) : new Pomufier();
 
 builder.Services.AddSingleton<Pomu.Pomufier>(pomufier);
 builder.Services.AddSingleton<PomuService>();
