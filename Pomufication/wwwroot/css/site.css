@@ -17,10 +17,55 @@ body {
   margin-bottom: 60px;
 }
 
-:root
-{
-	--mainAccent:#ff0064;
-	--faintAccent:#ffb0cf;
+:root {
+	/*Colors*/
+	--mainAccent: #ff0064;
+	--lightFill: #ffe1ec;
+	--medFill: #fed1e3;
+	--faintAccent: #ffeef5;
+	--lessFaintAccent: #e5e5e5;
+	--featureColor: #b51441;
+	--mainTextColor: #212529;
+	--glowColor: #ffe7f0;
+	--invertTextColor: #fff;
+	--mainBGColor: #fff;
+	--mainBGColorTransparent: rgb(255 255 255 / 0.5);
+	--darkText: #000;
+	--darkTextHover: #1f1f1f;
+	--buttonColor: #25a5cc;
+	--buttonHoverColor: #27c4f3;
+	--buttonCancelColor: #d11414;
+	--buttonCancelHoverColor: #f21717;
+	--buttonImportantColor: #37ccbe;
+	--buttonImportantHoverColor: #a8efe9;
+	--darkBG: #f7f7f7;
+	--darkShadow: rgb(0 0 0 / 0.31);
+	--faintShadow: rgb(0 0 0 / 0.15);
+	--statusYellow: #efbd07;
+	--statusYellowBorder: #f3c51f;
+	--statusGreen: #00ff7e;
+	--statusGreenBorder: #1efb8d;
+	--noticeColor: #e5e5e5;
+	--errorColor: #b51441;
+	--warnColor: #b56d14;
+	--sucessColor: #37ccbe;
+	--queueColor: #ffbdd3;
+	--queueColor2: #feccdc;
+	--placeholder: rgb(214 214 214 / 0.85);
+	/*Layers*/
+	--stickyLayer: 10000;
+	--popupLayer: 100000;
+	--notifLayer: 1000000;
+	/*Code*/
+	--codeBg: #f1f1f1;
+	--codeDeletedLine: #fba0b1;
+	--codeDeletedPeice: #e86075;
+	--codeInsertedLine: #8ceaa2;
+	--codeInsertedPeice: #64fb5e;
+	--codeImaginaryLine: #c6c6c6;
+	--codeImaginaryPeice: #3b1b30;
+	/*Settings*/
+	--blurAmmount: 8px;
 }
 
 a[role=button]
@@ -88,16 +133,120 @@ a[role=button]
 	{
 		display: flex;
 		flex-direction: column;
-		gap: 5px;
+		gap: 15px;
 		margin:5px 0;
+		margin-bottom:10px;
 	}
 
-	.filters .keyword
-	{
+	.filters .filterEntry{
 		display:grid;
-		grid-template-columns:40px 1fr 1fr 40px;
-		grid-gap:5px;
-		padding:10px;
+		grid-template-columns:1fr 3fr;
+		border:1px solid var(--lightFill);
 		background-color:var(--faintAccent);
-
+		box-shadow:0 1px 2px var(--faintShadow);
+		padding:5px;
 	}
+
+.filterEntry .filterConfig
+{
+	border-right:1px solid var(--mainAccent);
+}
+
+.filterEntry .filterValues,
+.filterEntry .filterConfig {
+	display: flex;
+	flex-direction: column;
+	padding: 5px;
+	gap: 5px;
+}
+
+.filterEntry .filterValues .filterValue
+{
+	display:grid;
+	grid-template-columns:1fr 30px;
+}
+
+
+input
+{
+	padding: 5px 10px;
+}
+
+label
+{
+	display:flex;
+}
+
+.checkBox {
+	display: inline-grid;
+	height: 25px;
+	width: 25px;
+	margin: 0 5px;
+	grid-template-columns: 1fr;
+	grid-template-rows: 1fr;
+	grid-template-areas: "Box";
+}
+
+	.checkBox input[type=checkbox]:disabled + .check {
+		opacity: .3;
+	}
+
+	.checkBox > input[type=checkbox] {
+		opacity: 0;
+		grid-area: Box;
+		min-height: unset;
+	}
+
+		.checkBox > input[type=checkbox] + .check {
+			grid-area: Box;
+			display: inline-block;
+			content: "";
+			background-color: vaR(--darkBG);
+			border: 1px solid var(--faintAccent);
+			display: grid;
+			justify-items: center;
+			align-items: center;
+			grid-template-areas: "Check";
+			grid-template-columns: 1fr;
+			grid-template-rows: 1fr;
+			transition: background-color .25s ease;
+		}
+
+		.checkBox > input[type=checkbox]:checked + .check {
+			background-color: vaR(--featureColor);
+			border: 1px solid var(--mainAccent );
+		}
+
+		.checkBox > input[type=checkbox]:focus + .check {
+			box-shadow: 0 0 5px 2px var(--mainAccent);
+		}
+
+		.checkBox > input[type=checkbox] + .check::after {
+			transform: rotateZ(45deg);
+		}
+
+		.checkBox > input[type=checkbox] + .check::before {
+			transform: rotateZ(-45deg);
+		}
+
+		.checkBox > input[type=checkbox] + .check::after,
+		.checkBox > input[type=checkbox] + .check::before {
+			display: block;
+			grid-area: Check;
+			content: "";
+			height: 80%;
+			width: 10%;
+			background-color: var(--featureColor);
+			transition: width .25s ease, height .25s ease, background-color .25s ease, transform .25s linear;
+		}
+
+		.checkBox > input[type=checkbox]:checked + .check::before {
+			background-color: var(--faintAccent);
+			height: 40%;
+			transform: translateY(36%) translateX(-260%) rotateZ(-45deg);
+		}
+
+		.checkBox > input[type=checkbox]:checked + .check::after {
+			background-color: var(--faintAccent);
+			transform: translateX(108%) rotateZ(45deg);
+		}

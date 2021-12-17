@@ -9,8 +9,12 @@
 	var link = Model.Channel?.Url ?? "";
 	var thumb = Model.Channel?.Thumbnails.First().Url ?? "";
 	var channel = Model.ChannelConfig;
+
+
+	var filterTypes = Enum.GetValues<KeywordType>();
 }
 
+<form>
 <div class="channel">
 	<div class="head">
 		<div class="icon" style="background-image:url(@thumb)"></div>
@@ -23,7 +27,47 @@
 		@for (var j = 0; j < channel.FilterKeywords.Count; j++)
 		{
 			var filter = channel.FilterKeywords[j];
-			<div class="keyword">
+			<div class="filterEntry">
+				<div class="filterConfig">
+					<label>
+						<span class="checkBox">
+							@if(filter.Enabled)
+							{
+								<input name="enable" type="checkbox" checked>
+							}else
+							{
+								<input name="enable" type="checkbox">
+							}
+							<span class="check"></span>
+						</span>
+						Enable
+					</label>
+					<label>Filter Type</label>
+					<select>
+						@for (var i = 0; i < filterTypes.Length; i++)
+						{
+							if(filter.Type == filterTypes[i])
+							{
+								<option selected value="@filterTypes[i]">@filterTypes[i]</option>
+							}else
+							{
+								<option value="@filterTypes[i]">@filterTypes[i]</option>
+							}
+						}
+					</select>
+				</div>
+				<div class="filterValues">
+					@for (var i = 0; i < filter.Filters.Length; i++)
+					{
+						<div class="filterValue">
+							<input type="text" placeholder="Filter Value" value="@filter.Filters[i]">
+							<a role="button">×</a>
+						</div>
+					}
+					<a role="button">Add Filter Value</a>
+				</div>
+			</div>
+			@*<div class="keyword">
 				@if(filter.Enabled)
 				{
 					<input type="checkbox" name="enabled" checked>
@@ -36,9 +80,11 @@
 					<option value="Regex">Regex</option>
 				</select>
 				<a role="button">x</a>
-			</div>
+			</div>*@
 		}
 		</div>
 		<a role="button">Add Filter</a>
 	</div>
+	<input type="submit" value="Save"/>
 </div>
+</form>

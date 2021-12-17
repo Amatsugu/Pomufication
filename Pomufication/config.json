@@ -24,7 +24,7 @@
 				},
 				{
 					"Enabled": true,
-					"Filters": [ "Unarchived" ],
+					"Filters": [ "Unarchived", "NoArchive", "No Archive" ],
 					"Comparison": 5,
 					"Type": 0
 				}
