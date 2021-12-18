@@ -13,13 +13,17 @@
 
 	var filterTypes = Enum.GetValues<KeywordType>();
 }
+@section Scripts
+{
+	<script src="/js/editChannel.js" asp-append-version="true"></script>
+}
 
 <form>
-<div class="channel">
+<div class="channel" data-id="@channel.ChannelId">
 	<div class="head">
 		<div class="icon" style="background-image:url(@thumb)"></div>
 		<div class="name"><a href="@link" target="_blank">@channelName</a></div>
-		<a role="button">Delete</a>
+		<a role="button" class="deleteBtn">Delete</a>
 	</div>
 	<div class="filters">
 		<h3>Filters</h3>
@@ -43,7 +47,7 @@
 						Enable
 					</label>
 					<label>Filter Type</label>
-					<select>
+					<select name="type">
 						@for (var i = 0; i < filterTypes.Length; i++)
 						{
 							if(filter.Type == filterTypes[i])
@@ -55,36 +59,59 @@
 							}
 						}
 					</select>
+					<a role="button" class="removeFilter">Remove</a>
 				</div>
 				<div class="filterValues">
 					@for (var i = 0; i < filter.Filters.Length; i++)
 					{
 						<div class="filterValue">
-							<input type="text" placeholder="Filter Value" value="@filter.Filters[i]">
-							<a role="button">×</a>
+							<input type="text" placeholder="Filter Value" value="@filter.Filters[i]" required>
+							<a role="button" class="removeBtn">×</a>
 						</div>
 					}
-					<a role="button">Add Filter Value</a>
+					<a role="button" class="addBtn">Add Filter Value</a>
 				</div>
 			</div>
-			@*<div class="keyword">
-				@if(filter.Enabled)
-				{
-					<input type="checkbox" name="enabled" checked>
-				}else{
-					<input type="checkbox" name="enabled">
-				}
-				<input type="text" name="filter" value="@string.Join(",", filter.Filters)">
-				<select name="">
-					<option value="Word">Word</option>
-					<option value="Regex">Regex</option>
-				</select>
-				<a role="button">x</a>
-			</div>*@
 		}
 		</div>
-		<a role="button">Add Filter</a>
+		<a role="button" id="addFilter">Add Filter</a>
 	</div>
 	<input type="submit" value="Save"/>
 </div>
 </form>
+
+<div id="filterTemplate" style="display:none;">
+	<div class="filterEntry">
+		<div class="filterConfig">
+			<label>
+				<span class="checkBox">
+					<input name="enable" type="checkbox" checked>
+					<span class="check"></span>
+				</span>
+				Enable
+			</label>
+			<label>Filter Type</label>
+			<select name="type">
+				@for (var i = 0; i < filterTypes.Length; i++)
+				{
+					<option value="@filterTypes[i]">@filterTypes[i]</option>
+				}
+			</select>
+			<a role="button" class="removeFilter">Remove</a>
+		</div>
+		<div class="filterValues">
+			<div class="filterValue">
+				<input type="text" placeholder="Filter Value" value="" required>
+				<a role="button" class="removeBtn">×</a>
+			</div>
+			<a role="button" class="addBtn">Add Filter Value</a>
+		</div>
+	</div>
+</div>
+
+<div id="filterValueTemplate" style="display:none;">
+	<div class="filterValue">
+		<input type="text" placeholder="Filter Value" value="" required>
+		<a role="button" class="removeBtn">×</a>
+	</div>
+</div>

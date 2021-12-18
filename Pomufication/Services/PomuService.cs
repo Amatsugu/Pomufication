@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text.Json;
 
 using YoutubeExplode;
+using YoutubeExplode.Common;
 
 namespace Pomufication.Services;
 
@@ -42,6 +43,12 @@ public class PomuService : IDisposable
 	internal ValueTask<YoutubeExplode.Channels.Channel> GetChannelAsync(string channelId)
 	{
 		return _youtube.Channels.GetAsync(channelId);
+	}
+
+	public async Task<List<ChannelResultViewModel>> SearchChannels(string query, int maxResults = 50)
+	{
+		var results = await _youtube.Search.GetChannelsAsync(query);
+		return results.Take(maxResults).Select(r => new ChannelResultViewModel(r)).ToList();
 	}
 
 	private async Task<Process> StartStreamlinkAsync(string url)

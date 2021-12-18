@@ -75,7 +75,14 @@ a[role=button]
 	align-items:center;
 	padding:5px;
 	border:1px solid var(--mainAccent);
+	color:var(--mainTextColor);
+	text-decoration:none;
 }
+
+	a[role=button]:hover
+	{
+		background-color:var(--medFill);
+	}
 
 
 #channelList
@@ -172,10 +179,29 @@ input
 	padding: 5px 10px;
 }
 
-label
-{
-	display:flex;
-}
+	input[type=text],
+	input[type=number],
+	input[type=search],
+	select {
+		border: 0;
+		border-left: 2px solid var(--featureColor);
+		padding: 5px;
+		padding-left: 11px;
+		border-radius: 0;
+	}
+
+		input[type=text]:focus,
+		input[type=number]:focus,
+		input[type=search]:focus,
+		select:focus {
+			border-left: 3px solid var(--mainAccent);
+			padding-left: 10px;
+			outline: none;
+		}
+
+	label {
+		display: flex;
+	}
 
 .checkBox {
 	display: inline-grid;
@@ -250,3 +276,38 @@ label
 			background-color: var(--faintAccent);
 			transform: translateX(108%) rotateZ(45deg);
 		}
+
+#addChannel
+{
+	border:1px solid var(--featureColor);
+	display:flex;
+	flex-direction:column;
+	padding:10px;
+	background-color:var(--faintAccent);
+}
+
+#addChannel .channelResult{
+	min-height:200px;
+	padding:10px;
+	box-shadow:0 2px 3px var(--faintShadow);
+	max-height:500px;
+	overflow-y:auto;
+	display:flex;
+	flex-direction:column;
+	gap:5px;
+}
+
+#addChannel .status
+{
+	justify-self:center;
+	align-self:center;
+	font-size:2rem;
+	font-weight:100;
+	color:var(--placeholder);
+}
+
+#addChannel .channelEntry
+{
+	background-color:var(--lightFill);
+	border:1px solid var(--medFill);
+}

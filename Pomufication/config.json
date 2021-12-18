@@ -1,13 +1,17 @@
-﻿{
+{
 	"Channels": [
 		{
 			"ChannelId": "UCp-5t9SrOQwXMU7iIjQfARg",
 			"Enabled": true,
 			"FilterKeywords": [
 				{
+					"Filters": [
+						"test",
+						"test2"
+					],
 					"Enabled": true,
-					"Filters": [ "歌" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				}
 			]
@@ -17,15 +21,33 @@
 			"Enabled": true,
 			"FilterKeywords": [
 				{
+					"Filters": [
+						"Karaoke"
+					],
 					"Enabled": true,
-					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				},
 				{
+					"Filters": [
+						"Unarchived",
+						"NoArchive",
+						"No Archive"
+					],
 					"Enabled": true,
-					"Filters": [ "Unarchived", "NoArchive", "No Archive" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
+					"Type": 0
+				},
+				{
+					"Filters": [
+						"123asdfasd",
+						"qwedasd"
+					],
+					"Enabled": true,
+					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				}
 			]
@@ -35,15 +57,21 @@
 			"Enabled": true,
 			"FilterKeywords": [
 				{
+					"Filters": [
+						"Karaoke"
+					],
 					"Enabled": true,
-					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				},
 				{
+					"Filters": [
+						"Unarchived"
+					],
 					"Enabled": true,
-					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				}
 			]
@@ -53,15 +81,21 @@
 			"Enabled": true,
 			"FilterKeywords": [
 				{
+					"Filters": [
+						"Karaoke"
+					],
 					"Enabled": true,
-					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				},
 				{
+					"Filters": [
+						"Unarchived"
+					],
 					"Enabled": true,
-					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				}
 			]
@@ -71,15 +105,21 @@
 			"Enabled": true,
 			"FilterKeywords": [
 				{
+					"Filters": [
+						"Karaoke"
+					],
 					"Enabled": true,
-					"Filters": [ "Karaoke" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				},
 				{
+					"Filters": [
+						"Unarchived"
+					],
 					"Enabled": true,
-					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				}
 			]
@@ -89,9 +129,12 @@
 			"Enabled": true,
 			"FilterKeywords": [
 				{
+					"Filters": [
+						"Unarchived"
+					],
 					"Enabled": true,
-					"Filters": [ "Unarchived" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				}
 			]
@@ -101,11 +144,20 @@
 			"Enabled": true,
 			"FilterKeywords": [
 				{
+					"Filters": [
+						"NoArchive"
+					],
 					"Enabled": true,
-					"Filters": [ "NoArchive" ],
 					"Comparison": 5,
+					"RegexOptions": 0,
 					"Type": 0
 				}
+			]
+		},
+		{
+			"ChannelId": "UCP0BspO_AMEe3aQqqpo89Dg",
+			"Enabled": true,
+			"FilterKeywords": [
 			]
 		}
 	]
