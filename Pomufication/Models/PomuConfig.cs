@@ -4,6 +4,7 @@ namespace Pomufication.Models;
 
 public class PomuConfig
 {
+	public string? DataDirectory { get; set; }
 	public List<ChannelConfig> Channels { get; set; }
 
 	public PomuConfig()

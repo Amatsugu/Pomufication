@@ -22,6 +22,7 @@ public class PomuService : IDisposable
 	private Timer _timer;
 
 	private bool _isSyncing;
+	private bool _disposedValue;
 
 	public PomuService(Pomufier pomufier, ILogger<PomuService> logger)
 	{
@@ -57,10 +58,20 @@ public class PomuService : IDisposable
 
 		var fileName = CleanTitle(video);
 
+		var filePath = Config.DataDirectory ?? "";
+
+		if (!string.IsNullOrWhiteSpace(filePath) && !Directory.Exists(filePath))
+		{
+			_logger.LogWarning("Directory '{dir}' does not exists, falling back to working directory.", filePath);
+			filePath = "";
+		}
+
+		filePath = Path.Combine(filePath, $"{fileName}.mp4");
+
 		var processInfo = new ProcessStartInfo
 		{
 			FileName = "streamlink",
-			Arguments = $"{url} best --retry-streams 30 -o {fileName}.mp4 {GetCoookieString()}",
+			Arguments = $"{url} best --retry-streams 30 -o \"{filePath}\" {GetCoookieString()}",
 		};
 		var p = Process.Start(processInfo);
 		if (p == null)
@@ -78,7 +89,7 @@ public class PomuService : IDisposable
 
 	private string CleanTitle(YoutubeExplode.Videos.Video video)
 	{
-		return $"'{video.Author.Title}_{video.Id}'";
+		return $"{video.Author.Title}_{video.Id}";
 	}
 
 	public void SetConfig(PomuConfig config)
@@ -146,6 +157,7 @@ public class PomuService : IDisposable
 			}
 			_logger.LogInformation($"Checking for streams: {channel.Title}");
 			var upcomingStreams = await _youtube.Search.GetVideosAsync(channel.Title)
+				.Take(5)
 				.Where(v => v.Author.ChannelId == channel.Id && v.Duration == null)
 				.ToListAsync();
 			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)))
@@ -180,8 +192,33 @@ public class PomuService : IDisposable
 		}
 	}
 
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposedValue)
+		{
+			if (disposing)
+			{
+				_timer?.Dispose();
+			}
+
+			//Close spawned processes
+			for (int i = 0; i < _activeDownloads.Count; i++)
+			{
+				if (!_activeDownloads[i].Process.HasExited)
+					_activeDownloads[i].Process.Kill();
+			}
+			_disposedValue = true;
+		}
+	}
+
+	~PomuService()
+	{
+		Dispose(disposing: false);
+	}
+
 	public void Dispose()
 	{
-		((IDisposable)_timer).Dispose();
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

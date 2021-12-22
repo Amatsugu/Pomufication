@@ -29,6 +29,12 @@ public class ConfigController : Controller
 		return View("ConfigEditor", viewModels);
 	}
 
+	[HttpGet("system")]
+	public IActionResult System()
+	{
+		return View("SystemConfig", _pomuService.Config);
+	}
+
 	[HttpGet("channel/{id}")]
 	public async Task<IActionResult> ConfigureChannelAsync(string id)
 	{

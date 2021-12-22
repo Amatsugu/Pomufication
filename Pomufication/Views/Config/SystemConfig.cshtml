@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["title"] = "System Config";
+}
+@model PomuConfig
+
+@section Scripts
+{
+    <script src="~/js/configureSystem.js" asp-append-version="true"></script>
+}
+
+<h1>System Config</h1>
+
+<form>
+    <label>Data Directory</label>
+    <input type="text" name="dataDirectory" value="@Model?.DataDirectory" placeholder="Enter data storage directory"/>
+    <input type="submit" value="Save"/>
+</form>

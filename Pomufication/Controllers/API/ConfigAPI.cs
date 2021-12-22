@@ -64,4 +64,13 @@ public class ConfigAPI : ControllerBase
 			items = results
 		});
 	}
+
+	[HttpPut("system")]
+	public IActionResult UpdateSystem([FromForm] PomuConfig config)
+	{
+		var cfg = _pomuService.Config;
+		cfg.DataDirectory = config.DataDirectory;
+		_pomuService.SetConfig(cfg);
+		return Ok();
+	}
 }
