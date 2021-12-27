@@ -15,6 +15,9 @@ var pomufier = File.Exists(cookiesFile) ? Pomu.Pomufier.CreateFromCookieFile(coo
 
 builder.Services.AddSingleton<Pomu.Pomufier>(pomufier);
 builder.Services.AddSingleton<PomuService>();
+var auth = new AuthService();
+
+builder.Services.AddSingleton<AuthService>();
 //builder.Services.AddSingleton<Pomu.Pomufier>();
 
 var app = builder.Build();
@@ -28,6 +31,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.Services.GetService<AuthService>();
 
 app.UseRouting();
 
