@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 using Pomu;
 
@@ -12,11 +13,13 @@ public class HomeController : Controller
 {
 	private readonly ILogger<HomeController> _logger;
 
-	public HomeController(ILogger<HomeController> logger, PomuService pomu)
+	public HomeController(ILogger<HomeController> logger)
 	{
 		_logger = logger;
 	}
 
+	[HttpGet]
+	[Authorize]
 	public async Task<IActionResult> IndexAsync([FromServices] Pomufier pomu, [FromQuery] string url)
 	{
 		if (url == null)
@@ -26,11 +29,27 @@ public class HomeController : Controller
 		return View("Index", t);
 	}
 
-	public IActionResult Privacy()
+	[HttpGet("login")]
+	public IActionResult Login([FromQuery] string? returnUrl, [FromQuery] string? code, [FromServices] AuthService authService)
 	{
+		if (code == null)
+			goto Login;
+		var token = authService.ExchangeCode(code);
+		if (token == null)
+			goto Login;
+		Response.Cookies.Append("token", token);
+		return LocalRedirect(returnUrl ?? "/");
+
+
+
+		Login:
+		Console.WriteLine($"Login Code: {authService.GetLoginCode()}");
 		return View();
+
 	}
 
+
+	[HttpGet("error")]
 	[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 	public IActionResult Error()
 	{

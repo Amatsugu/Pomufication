@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 using Pomufication.Models;
 using Pomufication.Services;
@@ -7,6 +8,7 @@ namespace Pomufication.Controllers.API;
 
 [Route("api/config")]
 [ApiController]
+[Authorize]
 public class ConfigAPI : ControllerBase
 {
 	private readonly PomuService _pomuService;
