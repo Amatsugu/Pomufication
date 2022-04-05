@@ -59,7 +59,6 @@ public class Keyword
 
 	public bool Match(string value)
 	{
-		Console.WriteLine($"Checking '{value}' against '{string.Join(",", Filters)}'");
 		if (!Enabled)
 			return true;
 		return Type switch

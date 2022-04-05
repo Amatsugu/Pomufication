@@ -105,7 +105,6 @@ public class PomuService : IDisposable
 		try
 		{
 			_isSyncing = true;
-			_logger.LogInformation("Starting Sync");
 			var streams = await CheckForNewStreams();
 			for (int i = 0; i < streams.Count; i++)
 			{
@@ -155,7 +154,9 @@ public class PomuService : IDisposable
 				_logger.LogWarning("Could not find a channel with id '{Id}'. Skipping...", channelConfig.ChannelId);
 				continue;
 			}
+#if DEBUG
 			_logger.LogInformation($"Checking for streams: {channel.Title}");
+#endif
 			var upcomingStreams = await _youtube.Search.GetVideosAsync(channel.Title)
 				.Take(5)
 				.Where(v => v.Author.ChannelId == channel.Id && v.Duration == null)
