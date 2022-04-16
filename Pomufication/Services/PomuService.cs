@@ -7,6 +7,7 @@ using System.Text.Json;
 
 using YoutubeExplode;
 using YoutubeExplode.Common;
+using YoutubeExplode.Search;
 
 namespace Pomufication.Services;
 
@@ -156,8 +157,10 @@ public class PomuService : IDisposable
 				continue;
 			}
 			_logger.LogInformation($"Checking for streams: {channel.Title}");
-			var upcomingStreams = await _youtube.Search.GetVideosAsync(channel.Title)
-				.Take(5)
+			var upcomingStreams = await _youtube.Search.GetResultsAsync(channel.Title)
+				.Take(20)
+				.Where(r => r is VideoSearchResult)
+				.Cast<VideoSearchResult>()	
 				.Where(v => v.Author.ChannelId == channel.Id && v.Duration == null)
 				.ToListAsync();
 			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)))
