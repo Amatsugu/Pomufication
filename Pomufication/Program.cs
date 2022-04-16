@@ -95,6 +95,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 
+app.Services.GetService<PomuService>();
+
 app.UseRouting();
 
 app.UseAuthentication();
