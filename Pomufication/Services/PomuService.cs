@@ -113,6 +113,7 @@ public class PomuService : IDisposable
 				{
 					if (_activeDownloads.Any(d => d.Url == url))
 						continue;
+					_logger.LogInformation("Starting download of {url}", url);
 					var download = await StartStreamlinkAsync(url);
 					_activeDownloads.Add(new ActiveDownload(url, download));
 				}
