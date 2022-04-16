@@ -72,7 +72,7 @@ public class PomuService : IDisposable
 		var processInfo = new ProcessStartInfo
 		{
 			FileName = "streamlink",
-			Arguments = $"{url} best --retry-streams 30 -o \"{filePath}\" {GetCoookieString()}",
+			Arguments = $"{url} best --stream-segment-timeout 60 --stream-timeout 360 --retry-streams 30 -o \"{filePath}\" {GetCoookieString()}",
 		};
 		var p = Process.Start(processInfo);
 		if (p == null)
