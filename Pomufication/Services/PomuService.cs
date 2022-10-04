@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.Text.Json;
 
 using YoutubeExplode;
+using YoutubeExplode.Channels;
 using YoutubeExplode.Common;
 using YoutubeExplode.Search;
+using YoutubeExplode.Videos;
 
 namespace Pomufication.Services;
 
@@ -16,8 +18,9 @@ public class PomuService : IDisposable
 	public PomuConfig Config { get; private set; }
 	private readonly Pomufier _pomufier;
 	private readonly ILogger<PomuService> _logger;
-	private readonly YoutubeClient _youtube;
-
+	private readonly ChannelClient _ytChannels;
+	private readonly SearchClient _ytSearch;
+	private readonly VideoClient _ytVideos;
 	private List<ActiveDownload> _activeDownloads;
 
 	private Timer _timer;
@@ -29,7 +32,10 @@ public class PomuService : IDisposable
 	{
 		_pomufier = pomufier;
 		_logger = logger;
-		_youtube = pomufier.YoutubeClient;
+		var youtube = pomufier.YoutubeClient;
+		_ytChannels = youtube.Channels;
+		_ytSearch = youtube.Search;
+		_ytVideos = youtube.Videos;
 		_activeDownloads = new List<ActiveDownload>();
 		Config = LoadConfig();
 		_timer = StartTimer();
@@ -44,18 +50,18 @@ public class PomuService : IDisposable
 
 	internal ValueTask<YoutubeExplode.Channels.Channel> GetChannelAsync(string channelId)
 	{
-		return _youtube.Channels.GetAsync(channelId);
+		return _ytChannels.GetAsync(channelId);
 	}
 
 	public async Task<List<ChannelResultViewModel>> SearchChannels(string query, int maxResults = 50)
 	{
-		var results = await _youtube.Search.GetChannelsAsync(query);
+		var results = await _ytSearch.GetChannelsAsync(query);
 		return results.Take(maxResults).Select(r => new ChannelResultViewModel(r)).ToList();
 	}
 
 	private async Task<Process> StartStreamlinkAsync(string url)
 	{
-		var video = await _youtube.Videos.GetAsync(url);
+		var video = await _ytVideos.GetAsync(url);
 
 		var fileName = CleanTitle(video);
 
@@ -88,9 +94,9 @@ public class PomuService : IDisposable
 		return null;
 	}
 
-	private string CleanTitle(YoutubeExplode.Videos.Video video)
+	private static string CleanTitle(YoutubeExplode.Videos.Video video)
 	{
-		return $"{video.Author.Title}_{video.Id}";
+		return $"{video.Author.ChannelTitle}_{video.Id}";
 	}
 
 	public void SetConfig(PomuConfig config)
@@ -128,7 +134,10 @@ public class PomuService : IDisposable
 			{
 				var download = _activeDownloads[i];
 				if (download.Process.HasExited)
+				{
+					download.Process.Dispose();
 					_activeDownloads.RemoveAt(i--);
+				}
 			}
 		}
 		catch (Exception ex)
@@ -150,14 +159,14 @@ public class PomuService : IDisposable
 			var channelConfig = Config.Channels[i];
 			if (!channelConfig.Enabled)
 				continue;
-			var channel = await _youtube.Channels.GetAsync(channelConfig.ChannelId);
+			var channel = await _ytChannels.GetAsync(channelConfig.ChannelId);
 			if (channel == null)
 			{
 				_logger.LogWarning("Could not find a channel with id '{Id}'. Skipping...", channelConfig.ChannelId);
 				continue;
 			}
 			_logger.LogInformation($"Checking for streams: {channel.Title}");
-			var upcomingStreams = await _youtube.Search.GetResultsAsync(channel.Title)
+			var upcomingStreams = await _ytSearch.GetResultsAsync(channel.Title)
 				.Take(20)
 				.Where(r => r is VideoSearchResult)
 				.Cast<VideoSearchResult>()	

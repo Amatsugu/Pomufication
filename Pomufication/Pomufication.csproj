@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.4" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="YoutubeExplode" Version="6.1.2" />
+    <PackageReference Include="YoutubeExplode" Version="6.2.2" />
   </ItemGroup>
 
 </Project>
