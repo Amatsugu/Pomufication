@@ -14,14 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 #else
 builder.Services.AddControllersWithViews();
 #endif
-var cookiesFile = @"D:\Downloads\youtube.com_cookies.txt";
-var pomufier = File.Exists(cookiesFile) ? Pomu.Pomufier.CreateFromCookieFile(cookiesFile) : new Pomufier();
+//var cookiesFile = @"D:\Downloads\youtube.com_cookies.txt";
+//var pomufier = File.Exists(cookiesFile) ? Pomu.Pomufier.CreateFromCookieFile(cookiesFile) : new Pomufier();
 
-builder.Services.AddSingleton<Pomu.Pomufier>(pomufier);
-builder.Services.AddSingleton<PomuService>();
+//builder.Services.AddSingleton<Pomu.Pomufier>(pomufier);
+//builder.Services.AddSingleton<PomuService>();
 var auth = new AuthService();
 
 builder.Services.AddSingleton<AuthService>(auth);
+builder.Services.AddSingleton<ConfigService>();
 
 
 var signingKey = new SymmetricSecurityKey(auth.AuthInfo.SecureKey);
@@ -95,7 +96,7 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 
-app.Services.GetService<PomuService>();
+//app.Services.GetService<PomuService>();
 
 app.UseRouting();
 

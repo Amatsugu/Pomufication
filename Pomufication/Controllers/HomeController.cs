@@ -18,16 +18,16 @@ public class HomeController : Controller
 		_logger = logger;
 	}
 
-	[HttpGet]
-	[Authorize]
-	public async Task<IActionResult> IndexAsync([FromServices] Pomufier pomu, [FromQuery] string url)
-	{
-		if (url == null)
-			return View();
-		var t = await pomu.LoadVideo(url);
-		await pomu.DownloadVideo(url);
-		return View("Index", t);
-	}
+	//[HttpGet]
+	//[Authorize]
+	//public async Task<IActionResult> IndexAsync([FromServices] Pomufier pomu, [FromQuery] string url)
+	//{
+	//	if (url == null)
+	//		return View();
+	//	var t = await pomu.LoadVideo(url);
+	//	await pomu.DownloadVideo(url);
+	//	return View("Index", t);
+	//}
 
 	[HttpGet("login")]
 	public IActionResult Login([FromQuery] string? returnUrl, [FromQuery] string? code, [FromServices] AuthService authService)

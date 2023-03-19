@@ -4,6 +4,8 @@ using YoutubeExplode;
 using YoutubeExplode.Search;
 
 namespace Pomu;
+
+[Obsolete("To be removed")]
 public class Pomufier : IDisposable
 {
 	public YoutubeClient YoutubeClient => _client;

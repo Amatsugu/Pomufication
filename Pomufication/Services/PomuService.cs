@@ -13,6 +13,7 @@ using YoutubeExplode.Videos;
 
 namespace Pomufication.Services;
 
+[Obsolete("To be removed")]
 public class PomuService : IDisposable
 {
 	public PomuConfig Config { get; private set; }

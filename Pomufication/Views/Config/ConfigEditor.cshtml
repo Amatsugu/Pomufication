@@ -18,9 +18,9 @@
 		@for (var i = 0; i < Model.Count; i++)
 		{
 			var cfg = Model[i];
-			var channelName = cfg.Channel?.Title ?? "Unknown";
+			var channelName = cfg.Channel?.Name ?? "Unknown";
 			var link = cfg.Channel?.Url ?? "";
-			var thumb = cfg.Channel?.Thumbnails.First().Url ?? "";
+			var thumb = cfg.Channel?.IconUrl ?? "";
 			var channel = cfg.ChannelConfig;
 			<div class="channelEntry">
 				<div class="head">

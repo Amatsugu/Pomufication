@@ -4,10 +4,10 @@
 	if (Model == null)
 		return;	
 
-	var channelName = Model.Channel?.Title ?? "Unknown";
+	var channelName = Model.Channel?.Name ?? "Unknown";
 	ViewData["title"] = $"Configure '{channelName}'";
 	var link = Model.Channel?.Url ?? "";
-	var thumb = Model.Channel?.Thumbnails.First().Url ?? "";
+	var thumb = Model.Channel?.Url ?? "";
 	var channel = Model.ChannelConfig;
 
 
