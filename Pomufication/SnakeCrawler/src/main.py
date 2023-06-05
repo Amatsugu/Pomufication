@@ -1,133 +1,165 @@
 import json
-import sys
-import subprocess
-import shutil
 import re
+import shutil
+import subprocess
+import sys
 import time
-from bs4 import BeautifulSoup
+from datetime import datetime
 
-IS_DEBUG = sys.platform == "win32"
+from apscheduler.schedulers.background import BackgroundScheduler
+import browser
+
+IS_DEBUG = True
 
 INVALID_CHARS = ['/', '\\', '\0', '`', '*', '|', ':', ':', '&']
 REGEX_CONVERSIONS = {0: 2, 1: 8, 4: 16, 5: 64, 8: 512}
 
-def main():
-	while True:
-		do_checks()
-		time.sleep(5 * 60)
-
-def do_checks():
-	cfg = load_config()
-	
-	active_processes = {}
-
-	check_channels(cfg["Channels"], active_processes)
-	clean_processes(active_processes)
 
 
-def clean_processes(active_processes : dict):
-	items = list(active_processes.items())
-	for id, process in items:
-		if not process.poll():
-			del active_processes[id]
-	pass
+class Downloader:
+    def __init__(self) -> None:
+        self.active_downloads = {}
+        self.active_ids = set()
+        self.cfg = load_config()
 
-def check_channels(channels : list, active_processes: dict):
-	for channel in channels:
-		check_channel(channel, active_processes)
-		break
+    def do_checks(self):
+        self.check_channels()
+        self.clean_processes()
 
-def check_channel(channel: dict, active_processes: dict):
-	if not channel["Enabled"]:
-		return
 
-	id = "UCSUu1lih2RifWkKtDOJdsBA" if IS_DEBUG else channel["ChannelId"]
-	if id in active_processes.keys():
-		return
+    def check_channels(self):
+        for channel in self.cfg['Channels']:
+            channel_id = channel["ChannelId"]
 
-	url = f"https://youtube.com/channel/{id}/live"
-	process = subprocess.run(["curl", "-L", url], capture_output=True)
-	html = process.stdout.decode("utf-8")
+            self.check_single_channel(channel_id)
 
-	(streamUrl, name) = read_channel_html(html)
-	if not should_download(name, channel["FilterKeywords"]):
-		return
 
-	pid = start_streamlink(streamUrl, name)
-	active_processes[id] = pid
+    def check_single_channel(self, ch_id:str):
+        link = f"https://www.youtube.com/channel/{ch_id}/live"
+        live_page = browser.fetch_yt_page(link)
+
+        live_link = browser.find_live_url(live_page)
+        if live_link is False:
+            return
+        live_page = browser.fetch_yt_page(live_link)
+        is_live, title, video_id, ch_name, start_date = browser.get_live_page_info(live_page)
+
+        if video_id in self.active_ids:
+            print(f"Already downloading {ch_name}")
+            return
+
+        if is_live:
+            print(f"Found a currently live stream! {ch_name} - {title}")
+        else:
+            print(f"Found a scheduled live stream! {ch_name} - {title} \
+                  -> {datetime.fromtimestamp(start_date)}")
+
+        self.streamlink_helper(live_link, ch_name, video_id)
+
+
+    def streamlink_helper(self, link, channel, video_id):
+        print(f"Spawning streamlink child process for {channel}")
+        _process = self.start_streamlink(link, channel)
+        self.active_downloads[video_id] = _process
+        self.active_ids.add(video_id)
+
+
+    def clean_processes(self):
+        items = [f for f in  self.active_ids]
+        for _id in items:
+            _process = self.active_downloads[_id]
+            if _process.poll() is not None:
+                print(f"Process {_id} has finished")
+
+                del self.active_downloads[_id]
+                self.active_ids.remove(_id)
+
+
+    def start_streamlink(self, url: str, name: str) -> subprocess.Popen:
+        fn = sanitize(f"\"{name}.mp4\"")
+        streamlink = shutil.which("streamlink")
+        return subprocess.Popen([streamlink, url, "best", "--stream-segment-timeout",
+                                "60", "--stream-timeout", "360","--retry-streams",
+                                "30", "-o", fn], stdout=subprocess.DEVNULL,
+                                stderr=subprocess.STDOUT)
+
+
 
 def should_download(name: str, keywords: list) -> bool:
-	if IS_DEBUG:
-		return True
-	for	keyword in keywords:
-		if not match_keyword(name, keyword):
-			return False
-	return True
+    if IS_DEBUG:
+        return True
+    for keyword in keywords:
+        if not match_keyword(name, keyword):
+            return False
+    return True
 
 def match_keyword(name: str, keyword: dict):
-	if not keyword["Enabled"]:
-		return True
-	if keyword["Type"] == 1:
-		return match_words(name, keyword["Filters"], keyword["Comparison"])
-	else:
-		return match_regex(name, keyword["Filters"], keyword["RegexOptions"])
+    if not keyword["Enabled"]:
+        return True
+    if keyword["Type"] == 1:
+        return match_words(name, keyword["Filters"], keyword["Comparison"])
+    return match_regex(name, keyword["Filters"], keyword["RegexOptions"])
 
 def match_words(name: str, words: list, comparison: int) -> bool:
-	if comparison % 2 == 1:
-		flag_options = re.IGNORECASE
-	else:
-		flag_options = re.NOFLAG
-	for pat in words:
-		_ret = re.findall(pat, name, flags=flag_options)
-		if len(_ret) > 0:
-			return True
-	return False
+    if comparison % 2 == 1:
+        flag_options = re.IGNORECASE
+    else:
+        flag_options = re.NOFLAG
+    for pat in words:
+        _ret = re.findall(pat, name, flags=flag_options)
+        if len(_ret) > 0:
+            return True
+    return False
 
 def match_regex(name: str, regex: list, options: int) -> bool:
-	flag_options = get_flags(options)
-	for pat in regex:
-		_ret = re.search(pat, name, flags=flag_options)
-		if _ret is not None:
-			return True
-	return False
-
-
+    flag_options = get_flags(options)
+    for pat in regex:
+        _ret = re.search(pat, name, flags=flag_options)
+        if _ret is not None:
+            return True
+    return False
 
 def get_flags(options: int) -> int:
-	new_flag = 0
-	bits = f"{options:09b}"[::-1]
-	for idx, bit in enumerate(bits):
-		if bit == '1' and idx in REGEX_CONVERSIONS.keys:
-			new_flag += REGEX_CONVERSIONS[idx]
+    new_flag = 0
+    bits = f"{options:09b}"[::-1]
+    keys = REGEX_CONVERSIONS.keys()
+    for idx, bit in enumerate(bits):
+        if bit == '1' and idx in keys:
+            new_flag += REGEX_CONVERSIONS[idx]
 
-	return new_flag
-
-def start_streamlink(url: str, name: str) -> subprocess.Popen:
-	fn = sanitize(f"\"{name}.mp4\"")
-	streamlink = shutil.which("streamlink")
-	return subprocess.Popen([streamlink, url, "best", "--stream-segment-timeout", "60", "--stream-timeout", "360","--retry-streams", "30", "-o", fn])
+    return new_flag
 
 def sanitize(value: str) -> str:
-	for sub in INVALID_CHARS:
-		value = value.replace(sub, '')
-	m = re.match(r"^-+(.*)", value)
-	if m:
-		return m.group(1)
-	return value
+    for sub in INVALID_CHARS:
+        value = value.replace(sub, '')
+    m = re.match(r"^-+(.*)", value)
+    if m:
+        return m.group(1)
+    return value
 
-
-def read_channel_html(html: str | bytes) -> tuple:
-	soup = BeautifulSoup(html, 'html.parser')
-	contentInfo = soup.find(rel="canonical")
-	name = soup.find("title").contents[0].text.replace(" - YouTube", "")
-	return contentInfo.attrs["href"], name
 
 def load_config() -> dict :
-	path = "config.json"
-	with open(path, "r") as cfg:
-		data = json.load(cfg)
-		return data
+    path = "config.json"
+    with open(path, "r", encoding="utf-8") as cfg:
+        data = json.load(cfg)
+        return data
 
 
 if __name__ == '__main__':
-	main()
+    app = Downloader()
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(app.do_checks, 'interval', minutes=5)
+    scheduler.start()
+    try:
+        app.do_checks()
+        while True:
+            time.sleep(5)
+
+    except( KeyboardInterrupt, SystemExit):
+        for process in app.active_downloads.values():
+            process.kill()
+        scheduler.shutdown()
+        sys.exit(0)
+    finally:
+        for process in app.active_downloads.values():
+            process.kill()
