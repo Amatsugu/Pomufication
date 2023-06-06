@@ -29,12 +29,14 @@ class Downloader:
 
     def check_channels(self):
         for channel in self.cfg['Channels']:
+            if channel['Enabled'] is False:
+                continue
             channel_id = channel["ChannelId"]
+            filters = channel['FilterKeywords']
+            self.check_single_channel(channel_id, filters)
 
-            self.check_single_channel(channel_id)
 
-
-    def check_single_channel(self, ch_id:str):
+    def check_single_channel(self, ch_id:str, filters: list) -> None:
         link = f"https://www.youtube.com/channel/{ch_id}/live"
         live_page = browser.fetch_yt_page(link)
 
@@ -43,6 +45,10 @@ class Downloader:
             return
         live_page = browser.fetch_yt_page(live_link)
         is_live, title, video_id, ch_name, start_date = browser.get_live_page_info(live_page)
+
+        if not self.filter_stream(title, filters):
+            logger.info("Skipping %s - %s since not in filter.", ch_name, title)
+            return
 
         if video_id in self.active_ids:
             print(f"Already downloading {ch_name}")
@@ -55,6 +61,24 @@ class Downloader:
                   -> {datetime.fromtimestamp(start_date)}")
 
         self.streamlink_helper(live_link, ch_name, video_id)
+
+
+    def filter_stream(self, title, filters):
+        for _f in filters:
+            if not _f['Enabled']:
+                continue
+            res = self.filter_stream_helper(_f, title)
+            if res is True:
+                return True
+        return False
+
+    def filter_stream_helper(self, _filter, title):
+        _type = _filter['Type']
+
+        if _type == 0:
+            return match_words(title, _filter['Filters'], _filter["Comparison"])
+
+        return match_regex(title, _filter['Filters'], _filter["RegexOptions"])
 
 
     def streamlink_helper(self, link, channel, video_id):
@@ -83,22 +107,6 @@ class Downloader:
                                 "30", "-o", fn], stdout=subprocess.DEVNULL,
                                 stderr=subprocess.STDOUT)
 
-
-
-def should_download(name: str, keywords: list) -> bool:
-    if IS_DEBUG:
-        return True
-    for keyword in keywords:
-        if not match_keyword(name, keyword):
-            return False
-    return True
-
-def match_keyword(name: str, keyword: dict):
-    if not keyword["Enabled"]:
-        return True
-    if keyword["Type"] == 1:
-        return match_words(name, keyword["Filters"], keyword["Comparison"])
-    return match_regex(name, keyword["Filters"], keyword["RegexOptions"])
 
 def match_words(name: str, words: list, comparison: int) -> bool:
     if comparison % 2 == 1:
