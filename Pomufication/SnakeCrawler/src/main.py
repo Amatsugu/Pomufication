@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 import time
+import logging
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -11,16 +12,65 @@ import browser
 
 IS_DEBUG = True
 
+TIME_FMT = ""
+
 INVALID_CHARS = ['/', '\\', '\0', '`', '*', '|', ':', ':', '&']
 REGEX_CONVERSIONS = {0: 2, 1: 8, 4: 16, 5: 64, 8: 512}
 
 
+class LoggingFormatter(logging.Formatter):
+    # Colors
+    black = "\x1b[30m"
+    red = "\x1b[31m"
+    green = "\x1b[32m"
+    yellow = "\x1b[33m"
+    blue = "\x1b[34m"
+    gray = "\x1b[38m"
+    # Styles
+    reset = "\x1b[0m"
+    bold = "\x1b[1m"
+
+    COLORS = {
+        logging.DEBUG: gray + bold,
+        logging.INFO: blue + bold,
+        logging.WARNING: yellow + bold,
+        logging.ERROR: red,
+        logging.CRITICAL: red + bold,
+    }
+
+    def format(self, record):
+        log_color = self.COLORS[record.levelno]
+        format = "(black){asctime}(reset) (levelcolor){levelname:<8}(reset) (green){name}(reset) {message}"
+        format = format.replace("(black)", self.black + self.bold)
+        format = format.replace("(reset)", self.reset)
+        format = format.replace("(levelcolor)", log_color)
+        format = format.replace("(green)", self.green + self.bold)
+        formatter = logging.Formatter(format, "%Y-%m-%d %H:%M:%S", style="{")
+        return formatter.format(record)
+
+logger = logging.getLogger("Pomufication")
+logger.setLevel(logging.INFO)
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(LoggingFormatter())
+# File handler
+file_handler = logging.FileHandler(filename="pomufication.log", encoding="utf-8", mode="w")
+file_handler_formatter = logging.Formatter(
+    "[{asctime}] [{levelname:<8}] {name}: {message}", "%Y-%m-%d %H:%M:%S", style="{"
+)
+file_handler.setFormatter(file_handler_formatter)
+
+# Add the handlers
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 class Downloader:
     def __init__(self) -> None:
         self.active_downloads = {}
         self.active_ids = set()
         self.cfg = load_config()
+        self.dl_path = self.cfg['DataDirectory']
 
     def do_checks(self):
         self.check_channels()
@@ -51,14 +101,14 @@ class Downloader:
             return
 
         if video_id in self.active_ids:
-            print(f"Already downloading {ch_name}")
+            logger.info("Already downloading %s", ch_name)
             return
 
         if is_live:
-            print(f"Found a currently live stream! {ch_name} - {title}")
+            logger.info("Found a currently live stream! %s - %s", ch_name, title)
         else:
-            print(f"Found a scheduled live stream! {ch_name} - {title} \
-                  -> {datetime.fromtimestamp(start_date)}")
+            logger.info("Found a scheduled live stream! %s - %s -> %s", ch_name, title, \
+                  datetime.fromtimestamp(start_date))
 
         self.streamlink_helper(live_link, ch_name, video_id)
 
@@ -82,18 +132,18 @@ class Downloader:
 
 
     def streamlink_helper(self, link, channel, video_id):
-        print(f"Spawning streamlink child process for {channel}")
+        logger.info("Spawning streamlink child process for %s", channel)
         _process = self.start_streamlink(link, channel)
         self.active_downloads[video_id] = _process
         self.active_ids.add(video_id)
 
 
     def clean_processes(self):
-        items = [f for f in  self.active_ids]
+        items = list(self.active_ids)
         for _id in items:
             _process = self.active_downloads[_id]
             if _process.poll() is not None:
-                print(f"Process {_id} has finished")
+                logger.info("Process %s has finished", _id)
 
                 del self.active_downloads[_id]
                 self.active_ids.remove(_id)
@@ -158,10 +208,11 @@ if __name__ == '__main__':
     scheduler = BackgroundScheduler()
     scheduler.add_job(app.do_checks, 'interval', minutes=5)
     scheduler.start()
+    logger.info("Started pomufication.")
     try:
         app.do_checks()
         while True:
-            time.sleep(5)
+            time.sleep(100)
 
     except( KeyboardInterrupt, SystemExit):
         for process in app.active_downloads.values():
