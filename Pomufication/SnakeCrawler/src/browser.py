@@ -35,7 +35,7 @@ def get_live_page_info(page:str) -> tuple:
     try:
         payload['videoDetails']['isUpcoming']
     except KeyError:
-        return (True,title, video_id, channel_name, None)
+        return (True, title, video_id, channel_name, None)
 
     startDate = payload['playabilityStatus']['liveStreamability']['liveStreamabilityRenderer'] \
         ['offlineSlate']['liveStreamOfflineSlateRenderer']['scheduledStartTime']
