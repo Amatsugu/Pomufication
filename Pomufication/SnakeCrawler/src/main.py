@@ -1,18 +1,20 @@
 import json
+import logging
 import re
-import shutil
-import subprocess
 import sys
 import time
-import logging
 from datetime import datetime
+from shlex import split as shlex_split
+from shutil import which
 
 from apscheduler.schedulers.background import BackgroundScheduler
+
 import browser
+from scheduler import Scheduler
 
 IS_DEBUG = True
 
-TIME_FMT = ""
+STREAMLINK = which("streamlink")
 
 INVALID_CHARS = ['/', '\\', '\0', '`', '*', '|', ':', ':', '&']
 REGEX_CONVERSIONS = {0: 2, 1: 8, 4: 16, 5: 64, 8: 512}
@@ -40,8 +42,8 @@ class LoggingFormatter(logging.Formatter):
 
     def format(self, record):
         log_color = self.COLORS[record.levelno]
-        format = "(black){asctime}(reset) (levelcolor){levelname:<8}(reset) (green){name}(reset) {message}"
-        format = format.replace("(black)", self.black + self.bold)
+        format = "(gray){asctime}(reset) (levelcolor){levelname:<8}(reset) (green){name}(reset) {message}"
+        format = format.replace("(gray)", self.gray + self.bold)
         format = format.replace("(reset)", self.reset)
         format = format.replace("(levelcolor)", log_color)
         format = format.replace("(green)", self.green + self.bold)
@@ -67,15 +69,13 @@ logger.addHandler(file_handler)
 
 class Downloader:
     def __init__(self) -> None:
+        self.scheduler = Scheduler()
+
+
         self.active_downloads = {}
         self.active_ids = set()
         self.cfg = load_config()
         self.dl_path = self.cfg['DataDirectory']
-
-    def do_checks(self):
-        self.check_channels()
-        self.clean_processes()
-
 
     def check_channels(self):
         for channel in self.cfg['Channels']:
@@ -95,7 +95,7 @@ class Downloader:
         if live_link is False:
             logger.info("No live stream found for %s", ch_id)
             return
-        
+
         live_page = browser.fetch_yt_page(live_link)
         is_live, title, video_id, ch_name, start_date = browser.get_live_page_info(live_page)
 
@@ -103,7 +103,7 @@ class Downloader:
             logger.info("Skipping %s - %s since not in filter.", ch_name, title)
             return
 
-        if video_id in self.active_ids:
+        if self.scheduler.check_if_id_exists(video_id):
             logger.info("Already downloading %s", ch_name)
             return
 
@@ -113,7 +113,7 @@ class Downloader:
             logger.info("Found a scheduled live stream! %s - %s -> %s", ch_name, title, \
                   datetime.fromtimestamp(start_date))
 
-        self.streamlink_helper(live_link, ch_name, video_id)
+        self.streamlink(ch_name, title, video_id, start_date)
 
 
     def filter_stream(self, title, filters):
@@ -125,41 +125,22 @@ class Downloader:
                 return True
         return False
 
+
     def filter_stream_helper(self, _filter, title):
         _type = _filter['Type']
-
         if _type == 0:
             return match_words(title, _filter['Filters'], _filter["Comparison"])
-
         return match_regex(title, _filter['Filters'], _filter["RegexOptions"])
 
 
-    def streamlink_helper(self, link, channel, video_id):
-        logger.info("Spawning streamlink child process for %s", channel)
-        _process = self.start_streamlink(link, channel)
-        self.active_downloads[video_id] = _process
-        self.active_ids.add(video_id)
+    def streamlink(self, channel, title, video_id, startTimne):
+        logger.info("Queuing streamlink child process for %s", channel)
+        fname = f"{channel} - {title}"
+        link = f"https://www.youtube.com/watch?v={video_id}"
+        cmd = f"{STREAMLINK} {link} best --stream-segment-timeout 60 \
+            --stream-timeout 360 --retry-streams 60 -o {fname}"
 
-
-    def clean_processes(self):
-        items = list(self.active_ids)
-        for _id in items:
-            _process = self.active_downloads[_id]
-            if _process.poll() is not None:
-                logger.info("Process %s has finished", _id)
-
-                del self.active_downloads[_id]
-                self.active_ids.remove(_id)
-
-
-    def start_streamlink(self, url: str, name: str) -> subprocess.Popen:
-        fn = sanitize(f"\"{name}.mp4\"")
-        streamlink = shutil.which("streamlink")
-        return subprocess.Popen([streamlink, url, "best", "--stream-segment-timeout",
-                                "60", "--stream-timeout", "360","--retry-streams",
-                                "30", "-o", fn], stdout=subprocess.DEVNULL,
-                                stderr=subprocess.STDOUT)
-
+        self.scheduler.create_process_order(video_id, startTimne, shlex_split(cmd))
 
 def match_words(name: str, words: list, comparison: int) -> bool:
     if comparison % 2 == 1:
@@ -209,11 +190,12 @@ def load_config() -> dict :
 if __name__ == '__main__':
     app = Downloader()
     scheduler = BackgroundScheduler()
-    scheduler.add_job(app.do_checks, 'interval', minutes=5)
+    scheduler.add_job(app.check_channels, 'interval', minutes=30)
+    scheduler.add_job(app.scheduler.check_childs, 'interval', minutes=5)
     scheduler.start()
     logger.info("Started pomufication.")
     try:
-        app.do_checks()
+        app.check_channels()
         while True:
             time.sleep(100)
 
