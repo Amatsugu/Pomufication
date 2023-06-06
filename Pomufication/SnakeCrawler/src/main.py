@@ -91,8 +91,11 @@ class Downloader:
         live_page = browser.fetch_yt_page(link)
 
         live_link = browser.find_live_url(live_page)
+
         if live_link is False:
+            logger.info("No live stream found for %s", ch_id)
             return
+        
         live_page = browser.fetch_yt_page(live_link)
         is_live, title, video_id, ch_name, start_date = browser.get_live_page_info(live_page)
 

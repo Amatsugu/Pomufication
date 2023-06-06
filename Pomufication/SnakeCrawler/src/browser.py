@@ -12,10 +12,14 @@ def fetch_yt_page(url: str) -> str:
 
 
 def find_live_url(page:str) -> str | bool:
-    m = re.search(r'(https\:\/\/www\.youtube.com\/watch\?v=.*?)\">', page)
-    if m is None:
-        return False
-    return m.group(1)
+    soup = BeautifulSoup(page, 'html.parser')
+    for e in soup.find_all('link', rel=True, ):
+        if e['rel'][0] == 'canonical':
+            url = e['href']
+    
+    if re.match(r'https\:\/\/www\.youtube.com\/watch\?v=', url):
+        return url
+    return False
 
 
 def get_live_page_info(page:str) -> tuple:
