@@ -42,7 +42,8 @@ class LoggingFormatter(logging.Formatter):
 
     def format(self, record):
         log_color = self.COLORS[record.levelno]
-        format = "(gray){asctime}(reset) (levelcolor){levelname:<8}(reset) (green){name}(reset) {message}"
+        format = "(gray){asctime}(reset) (levelcolor){levelname:<8}(reset) \
+            (green){name}(reset) {message}"
         format = format.replace("(gray)", self.gray + self.bold)
         format = format.replace("(reset)", self.reset)
         format = format.replace("(levelcolor)", log_color)
@@ -69,9 +70,7 @@ logger.addHandler(file_handler)
 
 class Downloader:
     def __init__(self) -> None:
-        self.scheduler = Scheduler()
-
-
+        self.scheduler = Scheduler(logger)
         self.active_downloads = {}
         self.active_ids = set()
         self.cfg = load_config()
@@ -135,12 +134,12 @@ class Downloader:
 
     def streamlink(self, channel, title, video_id, startTimne):
         logger.info("Queuing streamlink child process for %s", channel)
-        fname = f"{channel} - {title}"
+        fname = sanitize(f"{channel} - {title}")
         link = f"https://www.youtube.com/watch?v={video_id}"
         cmd = f"{STREAMLINK} {link} best --stream-segment-timeout 60 \
-            --stream-timeout 360 --retry-streams 60 -o {fname}"
+            --stream-timeout 360 --retry-streams 60 -o \"{self.dl_path}/{fname}\""
 
-        self.scheduler.create_process_order(video_id, startTimne, shlex_split(cmd))
+        self.scheduler.create_process_order(video_id, startTimne, shlex_split(cmd), fname)
 
 def match_words(name: str, words: list, comparison: int) -> bool:
     if comparison % 2 == 1:
@@ -199,11 +198,11 @@ if __name__ == '__main__':
         while True:
             time.sleep(100)
 
-    except( KeyboardInterrupt, SystemExit):
+    except( KeyboardInterrupt, SystemExit) as e:
+        pass
+    finally:
+        logger.info("Shutting down")
         for process in app.active_downloads.values():
             process.kill()
         scheduler.shutdown()
         sys.exit(0)
-    finally:
-        for process in app.active_downloads.values():
-            process.kill()
