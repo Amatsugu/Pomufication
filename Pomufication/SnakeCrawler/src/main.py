@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 import time
+import argparse
 from datetime import datetime
 from shlex import split as shlex_split
 from shutil import which
@@ -68,6 +69,8 @@ file_handler.setFormatter(file_handler_formatter)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+
+
 class Downloader:
     def __init__(self) -> None:
         self.scheduler = Scheduler(logger)
@@ -76,13 +79,34 @@ class Downloader:
         self.cfg = load_config()
         self.dl_path = self.cfg['DataDirectory']
 
+
     def check_channels(self):
+        self.cfg = load_config()
         for channel in self.cfg['Channels']:
             if channel['Enabled'] is False:
                 continue
             channel_id = channel["ChannelId"]
             filters = channel['FilterKeywords']
             self.check_single_channel(channel_id, filters)
+
+    def parse_usr_link(self, _link):
+        logger.info("Parsing user link from arg")
+
+        page = browser.fetch_yt_page(_link)
+
+        is_live, title, video_id, ch_name, start_date = browser.get_live_page_info(page)
+
+        if self.scheduler.check_if_id_exists(video_id):
+            logger.info("Already downloading %s", ch_name)
+            return
+
+        if is_live:
+            logger.info("Found a currently live stream! %s - %s", ch_name, title)
+        else:
+            logger.info("Found a scheduled live stream! %s - %s -> %s", ch_name, title, \
+                  datetime.fromtimestamp(start_date))
+
+        self.streamlink(ch_name, title, video_id, start_date)
 
 
     def check_single_channel(self, ch_id:str, filters: list) -> None:
@@ -137,7 +161,8 @@ class Downloader:
         fname = sanitize(f"{channel} - {title}")
         link = f"https://www.youtube.com/watch?v={video_id}"
         cmd = f"{STREAMLINK} {link} best --stream-segment-timeout 60 \
-            --stream-timeout 360 --retry-streams 60 -o \"{self.dl_path}/{fname}\""
+                --player-external-http-continuous no --stream-timeout 360 \
+                --retry-streams 30 -o \"{self.dl_path}/{fname}.mkv\""
 
         self.scheduler.create_process_order(video_id, startTimne, shlex_split(cmd), fname)
 
@@ -187,6 +212,11 @@ def load_config() -> dict :
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', action='store', required=False, help='Adds link to queue')
+    args = parser.parse_args()
+
+
     app = Downloader()
     scheduler = BackgroundScheduler()
     scheduler.add_job(app.check_channels, 'interval', minutes=30)
@@ -195,6 +225,8 @@ if __name__ == '__main__':
     logger.info("Started pomufication.")
     try:
         app.check_channels()
+        if args.l:
+            app.parse_usr_link(args.l)
         while True:
             time.sleep(100)
 
