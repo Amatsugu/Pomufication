@@ -23,6 +23,8 @@ var auth = new AuthService();
 
 builder.Services.AddSingleton<AuthService>(auth);
 builder.Services.AddSingleton<ConfigService>();
+builder.Services.AddSingleton<YouTubeService>();
+builder.Services.AddHostedService<PomuService>();
 
 
 var signingKey = new SymmetricSecurityKey(auth.AuthInfo.SecureKey);

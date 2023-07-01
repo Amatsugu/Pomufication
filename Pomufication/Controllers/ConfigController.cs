@@ -27,6 +27,7 @@ public class ConfigController : Controller
 		{
 			var channelConfig = _configService.Config.Channels[i];
 			var channel = await _youTubeService.GetChannelInfoAsync(channelConfig.ChannelId);
+			await Task.Delay(10);
 			viewModels.Add(new ChannelViewModel(channelConfig, channel));
 		}
 
