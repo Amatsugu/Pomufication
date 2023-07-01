@@ -1,5 +1,5 @@
 ﻿@{
-	var lookup = ViewData["lookup"] as Dictionary<string, YoutubeExplode.Channels.Channel> ?? new Dictionary<string, YoutubeExplode.Channels.Channel>();
+	var lookup = ViewData["lookup"];
 	ViewData["title"] = "Configure Channels";
 }
 @model List<ChannelViewModel>

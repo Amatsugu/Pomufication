@@ -1,27 +1,19 @@
 ﻿using Pomu;
 
 using Pomufication.Models;
-
+using Pomufication.Models.Youtube;
 using System.Diagnostics;
 using System.Text.Json;
 
-using YoutubeExplode;
-using YoutubeExplode.Channels;
-using YoutubeExplode.Common;
-using YoutubeExplode.Search;
-using YoutubeExplode.Videos;
 
 namespace Pomufication.Services;
 
-[Obsolete("To be removed")]
-public class PomuService : IDisposable
+public class PomuService : IHostedService
 {
 	public PomuConfig Config { get; private set; }
-	private readonly Pomufier _pomufier;
+
+	private readonly YouTubeService _youTube;
 	private readonly ILogger<PomuService> _logger;
-	private readonly ChannelClient _ytChannels;
-	private readonly SearchClient _ytSearch;
-	private readonly VideoClient _ytVideos;
 	private List<ActiveDownload> _activeDownloads;
 
 	private Timer _timer;
@@ -29,17 +21,12 @@ public class PomuService : IDisposable
 	private bool _isSyncing;
 	private bool _disposedValue;
 
-	public PomuService(Pomufier pomufier, ILogger<PomuService> logger)
+	public PomuService(YouTubeService youTube, ILogger<PomuService> logger)
 	{
-		_pomufier = pomufier;
+		_youTube = youTube;
 		_logger = logger;
-		var youtube = pomufier.YoutubeClient;
-		_ytChannels = youtube.Channels;
-		_ytSearch = youtube.Search;
-		_ytVideos = youtube.Videos;
 		_activeDownloads = new List<ActiveDownload>();
 		Config = LoadConfig();
-		_timer = StartTimer();
 	}
 
 	private record ActiveDownload(string Url, Process Process);
@@ -49,20 +36,14 @@ public class PomuService : IDisposable
 		return new Timer(Sync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
 	}
 
-	internal ValueTask<YoutubeExplode.Channels.Channel> GetChannelAsync(string channelId)
+	public Task<List<ChannelInfo>> SearchChannels(string query, int maxResults = 50)
 	{
-		return _ytChannels.GetAsync(channelId);
-	}
-
-	public async Task<List<ChannelResultViewModel>> SearchChannels(string query, int maxResults = 50)
-	{
-		var results = await _ytSearch.GetChannelsAsync(query);
-		return results.Take(maxResults).Select(r => new ChannelResultViewModel(r)).ToList();
+		return _youTube.SearchChannelsAsync(query);
 	}
 
 	private async Task<Process> StartStreamlinkAsync(string url)
 	{
-		var video = await _ytVideos.GetAsync(url);
+		var video = await _youTube.GetVideoFromUrlAsync(url);
 
 		var fileName = CleanTitle(video);
 
@@ -95,9 +76,9 @@ public class PomuService : IDisposable
 		return null;
 	}
 
-	private static string CleanTitle(YoutubeExplode.Videos.Video video)
+	private static string CleanTitle(VideoInfo video)
 	{
-		return $"{video.Author.ChannelTitle}_{video.Id}";
+		return $"{video.Channel.Name}_{video.Id}";
 	}
 
 	public void SetConfig(PomuConfig config)
@@ -160,21 +141,17 @@ public class PomuService : IDisposable
 			var channelConfig = Config.Channels[i];
 			if (!channelConfig.Enabled)
 				continue;
-			var channel = await _ytChannels.GetAsync(channelConfig.ChannelId);
+			var channel = await _youTube.GetChannelInfoAsync(channelConfig.ChannelId);
 			if (channel == null)
 			{
 				_logger.LogWarning("Could not find a channel with id '{Id}'. Skipping...", channelConfig.ChannelId);
 				continue;
 			}
-			_logger.LogInformation($"Checking for streams: {channel.Title}");
-			var upcomingStreams = await _ytSearch.GetResultsAsync(channel.Title)
-				.Take(20)
-				.Where(r => r is VideoSearchResult)
-				.Cast<VideoSearchResult>()	
-				.Where(v => v.Author.ChannelId == channel.Id && v.Duration == null)
-				.ToListAsync();
+			_logger.LogInformation("Checking for streams: {channel.Name}", channel.Name);
+			var upcomingStreams = await _youTube.GetUpcommingStreamsAsync(channel.Id);
 			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)))
 				.ToList();
+
 			if (matchingStreams.Any())
 				foundStreams.AddRange(matchingStreams.Select(v => v.Url));
 			await Task.Delay(100);
@@ -224,14 +201,15 @@ public class PomuService : IDisposable
 		}
 	}
 
-	~PomuService()
+	public async Task StartAsync(CancellationToken cancellationToken)
 	{
-		Dispose(disposing: false);
+		//_timer = StartTimer();
+		var info = await _youTube.GetChannelInfoAsync(Config.Channels.First().ChannelId);
 	}
 
-	public void Dispose()
+	public Task StopAsync(CancellationToken cancellationToken)
 	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		_timer.Dispose();
+		return Task.CompletedTask;
 	}
 }
