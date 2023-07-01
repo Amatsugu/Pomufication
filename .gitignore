@@ -362,3 +362,8 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 Pomufication/config.json
+
+
+# python config.json
+Pomufication/SnakeCrawler/src/config.json
+
