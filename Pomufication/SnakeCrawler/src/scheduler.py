@@ -34,7 +34,7 @@ class Scheduler:
                     to_kill.add(child_id)
                 continue
 
-            if self.queue[child_id].startTime is None:
+            if self.queue[child_id].startTime == -1:
                 should_start = True
             else:
                 should_start = (self.queue[child_id].startTime - datetime.now()) < START_CHILD_TIME
