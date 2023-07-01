@@ -2,6 +2,9 @@
 using Flurl.Http;
 
 using HtmlAgilityPack;
+
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 using Pomufication.Models.Youtube;
 using System.Net.Http.Headers;
 using System.Text.Json.Nodes;
@@ -20,6 +23,11 @@ public class YouTubeService
 		return $"https://youtube.com/channel/{channelId}";
 	}
 
+	public string GetChannelUrlFromUsername(string username)
+	{
+		return $"https://youtube.com/{username}";
+	}
+
 	private Task<string> LoadChannelPageAsync(string id)
 	{
 		var url = GetChannelUrl(id);
@@ -29,7 +37,10 @@ public class YouTubeService
 	public async Task<ChannelInfo?> GetChannelInfoAsync(string channelId)
 	{
 		var html = await LoadChannelPageAsync(channelId);
-		var info = ParseChannelInfo(html);
+		var json = ParseChannelData(html);
+		if(json == null)
+			return null;
+		var info = ReadChannelInfo(json);
 		return info;
 	}
 	
@@ -40,7 +51,11 @@ public class YouTubeService
 
 	public async Task<List<VideoInfo>> GetUpcommingStreamsAsync(string channelId)
 	{
-		throw new NotImplementedException();
+		var html = await LoadChannelPageAsync(channelId);
+		var json = ParseChannelData(html);
+		if (json == null)
+			return new List<VideoInfo>(0);
+		return ReadUpcommingStreamsAsync(json);
 	}
 
 	public async Task<VideoInfo> GetVideoAsync(string videoId)
@@ -53,7 +68,7 @@ public class YouTubeService
 		throw new NotImplementedException();
 	}
 
-	private ChannelInfo? ParseChannelInfo(string html)
+	private JsonNode? ParseChannelData(string html)
 	{
 		var doc = new HtmlDocument();
 		doc.LoadHtml(html);
@@ -62,13 +77,68 @@ public class YouTubeService
 			.First(a => a.InnerText.Contains("var ytInitialData"))
 			.InnerText.Trim();
 		var initData = script[20..^1];
+#if DEBUG
 		//File.WriteAllText("/test.json", initData);
+#endif
 
-		var json = JsonObject.Parse(initData);
+		var json = JsonNode.Parse(initData);
 
 		if (json == null)
 			return null;
 
+		return json;
+	}
+
+	private List<VideoInfo> ReadUpcommingStreamsAsync(JsonNode json, bool includeLiveNow = true)
+	{
+
+		var tabs = json["contents"]!["twoColumnBrowseResultsRenderer"]!["tabs"]!.AsArray();
+
+		var homeTab = tabs.First(t => t!["tabRenderer"]!["title"]!.GetValue<string>() == "Home")!["tabRenderer"]!;
+
+		var contentSections = homeTab["content"]!
+									["sectionListRenderer"]!
+									["contents"]!.AsArray();
+
+		var allShelfs = contentSections.SelectMany(s => s!["itemSectionRenderer"]!["contents"]!
+						.AsArray().Select(c => c!));
+
+		var featuredContent = allShelfs.First(s => s["channelFeaturedContentRenderer"] != null);
+
+		var otherShelfs = allShelfs.Where(s => s["shelfRenderer"] != null).Select(s => s["shelfRenderer"]!);
+
+		var upcomingShelf = otherShelfs.FirstOrDefault(s => 
+			s!["title"]!["runs"]!.AsArray()
+			.Any(t => t!["text"]!.GetValue<string>() == "Upcoming live streams")
+		);
+
+		if (upcomingShelf == null)
+			return new List<VideoInfo>(0);
+
+		var upcomingItems = upcomingShelf!["content"]!["horizontalListRenderer"]!["items"]!.AsArray();
+		var results = new List<VideoInfo>(upcomingItems.Count);
+
+		var channelInfo = ReadChannelInfo(json);
+
+		foreach (var item in upcomingItems)
+		{
+			var videoItem = item!["gridVideoRenderer"]!;
+			var videoId = videoItem["videoId"]!.GetValue<string>();
+			var title = videoItem["title"]!["simpleText"]!.GetValue<string>();
+			var startTimeInfo = videoItem["upcomingEventData"]!["startTime"]!.GetValue<string>();
+			if(int.TryParse(startTimeInfo, out var timeInt))
+			{
+				var start = DateTimeOffset.UnixEpoch.AddSeconds(timeInt).LocalDateTime;
+			}
+
+			results.Add(new VideoInfo(videoId, title, channelInfo));
+		}
+
+		return results;
+	}
+
+	private ChannelInfo ReadChannelInfo(JsonNode json)
+	{
 		var meta = json["metadata"]!["channelMetadataRenderer"]!;
 
 		var iconUrl = meta["avatar"]!

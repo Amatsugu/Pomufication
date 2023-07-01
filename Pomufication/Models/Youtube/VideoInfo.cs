@@ -1,3 +1,6 @@
 ﻿namespace Pomufication.Models.Youtube;
 
-public record VideoInfo(string Id, string Title, string Url, ChannelInfo Channel, string? Description = null);
+public record VideoInfo(string Id, string Title, ChannelInfo Channel)
+{
+	public string Url => $"https://youtube.com/watch?=${Id}";
+};

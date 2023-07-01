@@ -203,8 +203,8 @@ public class PomuService : IHostedService
 
 	public async Task StartAsync(CancellationToken cancellationToken)
 	{
-		//_timer = StartTimer();
-		var info = await _youTube.GetChannelInfoAsync(Config.Channels.First().ChannelId);
+		_timer = StartTimer();
+		//var info = await _youTube.GetUpcommingStreamsAsync("@TakaneLui");
 	}
 
 	public Task StopAsync(CancellationToken cancellationToken)
