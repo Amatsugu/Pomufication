@@ -148,7 +148,7 @@ public class PomuService : IHostedService
 				continue;
 			}
 			_logger.LogInformation("Checking for streams: {channel.Name}", channel.Name);
-			var upcomingStreams = await _youTube.GetUpcommingStreamsAsync(channel.Id);
+			var upcomingStreams = await _youTube.GetUpcomingStreamsAsync(channel.Id);
 			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)))
 				.ToList();
 
@@ -201,10 +201,9 @@ public class PomuService : IHostedService
 		}
 	}
 
-	public async Task StartAsync(CancellationToken cancellationToken)
+	public void Start(CancellationToken cancellationToken)
 	{
 		_timer = StartTimer();
-		//var info = await _youTube.GetUpcommingStreamsAsync("@TakaneLui");
 	}
 
 	public Task StopAsync(CancellationToken cancellationToken)

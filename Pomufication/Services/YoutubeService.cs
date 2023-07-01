@@ -49,13 +49,13 @@ public class YouTubeService
 		throw new NotImplementedException();
 	}
 
-	public async Task<List<VideoInfo>> GetUpcommingStreamsAsync(string channelId)
+	public async Task<List<VideoInfo>> GetUpcomingStreamsAsync(string channelId)
 	{
 		var html = await LoadChannelPageAsync(channelId);
 		var json = ParseChannelData(html);
 		if (json == null)
 			return new List<VideoInfo>(0);
-		return ReadUpcommingStreamsAsync(json);
+		return ReadUpcomingStreamsAsync(json);
 	}
 
 	public async Task<VideoInfo> GetVideoAsync(string videoId)
@@ -89,7 +89,7 @@ public class YouTubeService
 		return json;
 	}
 
-	private List<VideoInfo> ReadUpcommingStreamsAsync(JsonNode json, bool includeLiveNow = true)
+	private List<VideoInfo> ReadUpcomingStreamsAsync(JsonNode json, bool includeLiveNow = true)
 	{
 
 		var tabs = json["contents"]!["twoColumnBrowseResultsRenderer"]!["tabs"]!.AsArray();
@@ -103,7 +103,7 @@ public class YouTubeService
 		var allShelfs = contentSections.SelectMany(s => s!["itemSectionRenderer"]!["contents"]!
 						.AsArray().Select(c => c!));
 
-		var featuredContent = allShelfs.First(s => s["channelFeaturedContentRenderer"] != null);
+		var featuredContent = allShelfs.FirstOrDefault(s => s["channelFeaturedContentRenderer"] != null);
 
 		var otherShelfs = allShelfs.Where(s => s["shelfRenderer"] != null).Select(s => s["shelfRenderer"]!);
 
@@ -115,14 +115,22 @@ public class YouTubeService
 		if (upcomingShelf == null)
 			return new List<VideoInfo>(0);
 
-		var upcomingItems = upcomingShelf!["content"]!["horizontalListRenderer"]!["items"]!.AsArray();
+		var upcomingContent = upcomingShelf!["content"]!;
+		var upcomingItems = upcomingContent["horizontalListRenderer"]?["items"]!.AsArray();
+		var isExpanded = false;
+		if (upcomingItems == null)
+		{
+			upcomingItems = upcomingContent["expandedShelfContentsRenderer"]!["items"]!.AsArray();
+			isExpanded = true;
+		}
+
 		var results = new List<VideoInfo>(upcomingItems.Count);
 
 		var channelInfo = ReadChannelInfo(json);
 
 		foreach (var item in upcomingItems)
 		{
-			var videoItem = item!["gridVideoRenderer"]!;
+			var videoItem = isExpanded ? item!["videoRenderer"]! : item!["gridVideoRenderer"]!;
 			var videoId = videoItem["videoId"]!.GetValue<string>();
 			var title = videoItem["title"]!["simpleText"]!.GetValue<string>();
 			var startTimeInfo = videoItem["upcomingEventData"]!["startTime"]!.GetValue<string>();
