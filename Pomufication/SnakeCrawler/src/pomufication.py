@@ -6,10 +6,10 @@ import re
 import sys
 import time
 from datetime import datetime
-from shlex import split as shlex_split
 from shutil import which, copy
 
 from apscheduler.schedulers.background import BackgroundScheduler
+# from pynput.keyboard import Listener, Key, KeyCode
 
 import browser
 from scheduler import Scheduler
@@ -103,7 +103,13 @@ class Downloader:
             self.check_single_channel(channel_id, filters)
 
     def parse_usr_link(self, _link):
-        logger.info("Parsing user link from arg")
+        m1 = re.match(r'https?://(?:www\.)?youtube\.com/watch', _link)
+        m2 = re.match(r'https?://youtu\.be/', _link)
+        if m1 is None and m2 is None:
+            print('Invalid link.')
+            return
+
+        logger.info("Parsing user link")
 
         page = browser.fetch_yt_page(_link)
 
@@ -180,13 +186,10 @@ class Downloader:
 
     def streamlink(self, channel, title, video_id, startTimne):
         logger.info("Queuing streamlink child process for %s", channel)
-        fname = sanitize(f"{channel} - {title}")
-        link = f"https://www.youtube.com/watch?v={video_id}"
-        cmd = f"{STREAMLINK} {link} best --stream-segment-timeout 60 \
-                --player-external-http-continuous no --stream-timeout 360 \
-                --retry-streams 30 -o \"{self.dl_path}/{fname}.mkv\""
+        fname = sanitize(f"[{video_id}] {channel} - {title}")
+        path = f"{self.dl_path}/{fname}"
 
-        self.scheduler.create_process_order(video_id, startTimne, shlex_split(cmd), fname)
+        self.scheduler.create_process_order(video_id, fname, path, startTimne)
 
 
 def match_words(name: str, words: list, comparison: int) -> bool:
@@ -194,7 +197,7 @@ def match_words(name: str, words: list, comparison: int) -> bool:
         flag_options = re.IGNORECASE
     else:
         flag_options = re.NOFLAG
-        
+
     for pat in words:
         _ret = re.findall(pat, name, flags=flag_options)
         if len(_ret) > 0:
@@ -250,23 +253,32 @@ def check_config_file() -> str:
             raise FirstRun
     except FirstRun:
         print(f'Config file created at {path}. Please edit it and restart the program.')
-        sys.exit(1) 
+        sys.exit(1)
 
     return os.path.join(path, 'config.json')
 
-
+TZ='Atlantic/Azores'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', action='store', required=False, help='Adds link to queue')
     args = parser.parse_args()
 
+
     app = Downloader()
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler({'apscheduler.timezone': TZ})
     scheduler.add_job(app.check_channels, 'interval', minutes=30)
     scheduler.add_job(app.scheduler.check_childs, 'interval', minutes=5)
     scheduler.start()
     logger.info("Started pomufication.")
+
+    # def do_input(key):
+    #     if key == KeyCode.from_char('l'):
+    #         link = input('Please insert the link: ')
+    #         app.parse_usr_link(link[1:])
+    #
+    # listener = Listener(on_release=do_input)
+    # listener.start()
 
     try:
         app.check_channels()
