@@ -69,6 +69,13 @@ file_handler.setFormatter(file_handler_formatter)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+class Info:
+    def __init__(self, channel, title, video_id, start_date, is_live=False) -> None:
+        self.channel:str = channel
+        self.title:str = title
+        self.video_id:str = video_id
+        self.start_date:int = start_date
+        self.is_live:bool = is_live
 
 
 class Downloader:
@@ -89,6 +96,7 @@ class Downloader:
             filters = channel['FilterKeywords']
             self.check_single_channel(channel_id, filters)
 
+
     def parse_usr_link(self, _link):
         logger.info("Parsing user link from arg")
 
@@ -97,7 +105,7 @@ class Downloader:
         is_live, title, video_id, ch_name, start_date = browser.get_live_page_info(page)
 
         if self.scheduler.check_if_id_exists(video_id):
-            logger.info("Already downloading %s", ch_name)
+            logger.info("Already downloading %s - %s", ch_name, title)
             return
 
         if is_live:
@@ -108,35 +116,48 @@ class Downloader:
 
         self.streamlink(ch_name, title, video_id, start_date)
 
+
+    def checks_helper(self, info: Info, filters:list):
+        if not self.filter_stream(info.title, filters):
+            logger.info("Skipping %s - %s since not in filter.", info.channel, info.title)
+            return
+        if self.scheduler.check_if_id_exists(info.video_id):
+            logger.info("Already downloading %s", info.channel)
+            return
+
+        if info.is_live:
+            logger.info("Found a currently live stream! %s - %s", info.channel, info.title)
+        else:
+            logger.info("Found a scheduled live stream! %s - %s -> %s", info.channel, info.title, \
+                  datetime.fromtimestamp(info.start_date))
+
+        self.streamlink(info.channel, info.title, info.video_id, info.start_date)
 
     def check_single_channel(self, ch_id:str, filters: list) -> None:
-        link = f"https://www.youtube.com/channel/{ch_id}/live"
-        live_page = browser.fetch_yt_page(link)
 
-        live_link = browser.find_live_url(live_page)
+        channel_page = browser.fetch_channel_page(f"https://www.youtube.com/channel/{ch_id}/")
+        channel_name, resp = browser.get_channel_info(channel_page)
 
-        if live_link is False:
-            logger.info("No live stream found for %s", ch_id)
-            return
+        logger.info("Checking %s", channel_name)
+        if resp is None:
+            live_page = browser.fetch_yt_page(f"https://www.youtube.com/channel/{ch_id}/live")
+            live_link = browser.find_live_url(live_page)
 
-        live_page = browser.fetch_yt_page(live_link)
-        is_live, title, video_id, ch_name, start_date = browser.get_live_page_info(live_page)
+            if live_link is False:
+                logger.info("No live stream found for %s", channel_name)
+                return
 
-        if not self.filter_stream(title, filters):
-            logger.info("Skipping %s - %s since not in filter.", ch_name, title)
-            return
+            live_page = browser.fetch_yt_page(live_link)
+            is_live, title, video_id, _, start_date = browser.get_live_page_info(live_page)
 
-        if self.scheduler.check_if_id_exists(video_id):
-            logger.info("Already downloading %s", ch_name)
-            return
+            info = Info(channel_name, title, video_id, start_date, is_live)
+            self.checks_helper(info, filters)
 
-        if is_live:
-            logger.info("Found a currently live stream! %s - %s", ch_name, title)
         else:
-            logger.info("Found a scheduled live stream! %s - %s -> %s", ch_name, title, \
-                  datetime.fromtimestamp(start_date))
-
-        self.streamlink(ch_name, title, video_id, start_date)
+            # elem is title, video_id, start_date
+            for elem in resp:
+                info = Info(channel_name, elem[0], elem[1], elem[2])
+                self.checks_helper(info, filters)
 
 
     def filter_stream(self, title, filters):
@@ -203,7 +224,6 @@ def sanitize(value: str) -> str:
         return m.group(1)
     return value
 
-
 def load_config() -> dict :
     path = "config.json"
     with open(path, "r", encoding="utf-8") as cfg:
@@ -223,6 +243,7 @@ if __name__ == '__main__':
     scheduler.add_job(app.scheduler.check_childs, 'interval', minutes=5)
     scheduler.start()
     logger.info("Started pomufication.")
+
     try:
         app.check_channels()
         if args.l:
@@ -230,8 +251,10 @@ if __name__ == '__main__':
         while True:
             time.sleep(100)
 
-    except( KeyboardInterrupt, SystemExit) as e:
+    except( KeyboardInterrupt, SystemExit):
         pass
+    except Exception as e:
+        logger.exception("Error occured: %s", e)
     finally:
         logger.info("Shutting down")
         for process in app.active_downloads.values():

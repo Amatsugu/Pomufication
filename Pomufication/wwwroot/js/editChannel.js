@@ -33,7 +33,7 @@
 			var elem = $(filterValueTemplate.html()).hide();
 			addBtn.before(elem);
 			elem.find(".removeBtn").on("click", () => {
-				elem.slideUp(250, elem.remove);
+				elem.slideUp(250, () => elem.remove());
 			});
 			elem.slideDown(250);
 		});
@@ -42,7 +42,7 @@
 		values.each(i => {
 			var elem = values.eq(i);
 			elem.find(".removeBtn").on("click", () => {
-				elem.slideUp(250, elem.remove);
+				elem.slideUp(250, () => elem.remove());
 			});
 		});
 

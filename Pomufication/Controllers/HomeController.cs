@@ -40,8 +40,6 @@ public class HomeController : Controller
 		Response.Cookies.Append("token", token);
 		return LocalRedirect(returnUrl ?? "/");
 
-
-
 		Login:
 		Console.WriteLine($"Login Code: {authService.GetLoginCode()}");
 		return View();

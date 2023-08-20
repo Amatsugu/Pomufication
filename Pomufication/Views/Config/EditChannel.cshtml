@@ -7,7 +7,7 @@
 	var channelName = Model.Channel?.Name ?? "Unknown";
 	ViewData["title"] = $"Configure '{channelName}'";
 	var link = Model.Channel?.Url ?? "";
-	var thumb = Model.Channel?.Url ?? "";
+	var thumb = Model.Channel?.IconUrl ?? "";
 	var channel = Model.ChannelConfig;
 
 

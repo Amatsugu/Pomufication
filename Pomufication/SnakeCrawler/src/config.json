@@ -1,14 +1,13 @@
 {
-	"DataDirectory": "M:\\VTuber Karaoke",
+	"DataDirectory": "/storage/Downloads",
 	"Channels": [
 		{
-			"ChannelId": "UCp-5t9SrOQwXMU7iIjQfARg",
+			"ChannelId": "UC1suqwovbL1kzsoaZgFZLKg",
 			"Enabled": true,
 			"FilterKeywords": [
 				{
 					"Filters": [
-						"test",
-						"test2"
+						"ASMR"
 					],
 					"Enabled": true,
 					"Comparison": 5,
@@ -18,23 +17,28 @@
 			]
 		},
 		{
-			"ChannelId": "UCMwGHR0BTZuLsmjY_NT5Pwg",
+			"ChannelId": "UCdyqAaZDKHXg4Ahi7VENThQ",
 			"Enabled": true,
 			"FilterKeywords": [
 				{
 					"Filters": [
-						"Karaoke"
+						"(?<!メン限)ASMR"
 					],
 					"Enabled": true,
 					"Comparison": 5,
 					"RegexOptions": 0,
-					"Type": 0
-				},
+					"Type": 1
+				}
+			]
+		},
+        {
+			"ChannelId": "UCO_aKKYxn4tvrqPjcTzZ6EQ",
+			"Enabled": true, 
+			"FilterKeywords": [
 				{
 					"Filters": [
-						"Unarchived",
-						"NoArchive",
-						"No Archive"
+						"ASMR",
+                        "KU 100"
 					],
 					"Enabled": true,
 					"Comparison": 5,
@@ -43,120 +47,16 @@
 				}
 			]
 		},
-		{
-			"ChannelId": "UC8rcEBzJSleTkf_-agPM20g",
-			"Enabled": true,
+        {
+			"ChannelId": "UCmbs8T6MWqUHP1tIQvSgKrg",
+			"Enabled": false,
 			"FilterKeywords": [
 				{
-					"Filters": [
-						"Karaoke"
-					],
+					"Filters": ["."],
 					"Enabled": true,
 					"Comparison": 5,
 					"RegexOptions": 0,
-					"Type": 0
-				},
-				{
-					"Filters": [
-						"Unarchived"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
-				}
-			]
-		},
-		{
-			"ChannelId": "UCR6qhsLpn62WVxCBK1dkLow",
-			"Enabled": true,
-			"FilterKeywords": [
-				{
-					"Filters": [
-						"Karaoke"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
-				},
-				{
-					"Filters": [
-						"Unarchived"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
-				}
-			]
-		},
-		{
-			"ChannelId": "UCP4nMSTdwU1KqYWu3UH5DHQ",
-			"Enabled": true,
-			"FilterKeywords": [
-				{
-					"Filters": [
-						"Karaoke"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
-				},
-				{
-					"Filters": [
-						"Unarchived"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
-				}
-			]
-		},
-		{
-			"ChannelId": "UC3n5uGu18FoCy23ggWWp8tA",
-			"Enabled": true,
-			"FilterKeywords": [
-				{
-					"Filters": [
-						"Unarchived"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
-				}
-			]
-		},
-		{
-			"ChannelId": "UCNVEsYbiZjH5QLmGeSgTSzg",
-			"Enabled": true,
-			"FilterKeywords": [
-				{
-					"Filters": [
-						"NoArchive"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
-				}
-			]
-		},
-		{
-			"ChannelId": "UCP0BspO_AMEe3aQqqpo89Dg",
-			"Enabled": true,
-			"FilterKeywords": [
-				{
-					"Filters": [
-						"Unarchive"
-					],
-					"Enabled": true,
-					"Comparison": 5,
-					"RegexOptions": 0,
-					"Type": 0
+					"Type": 1
 				}
 			]
 		}
