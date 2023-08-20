@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using Pomu;
-
 using Pomufication.Models;
 using Pomufication.Services;
 

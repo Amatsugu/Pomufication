@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-using Pomu;
-
 using Pomufication.Services;
 
 var builder = WebApplication.CreateBuilder(args);
