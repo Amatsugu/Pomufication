@@ -202,12 +202,14 @@ public class PomuService : IHostedService
 
 	public Task StopAsync(CancellationToken cancellationToken)
 	{
+		_logger.LogInformation("Pomu Service Stopping...");
 		_timer?.Dispose();
 		return Task.CompletedTask;
 	}
 
 	public Task StartAsync(CancellationToken cancellationToken)
 	{
+		_logger.LogInformation("Pomu Service Starting...");
 		_timer = StartTimer();
 		return Task.CompletedTask;
 	}
