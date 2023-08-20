@@ -21,7 +21,7 @@ var auth = new AuthService();
 
 builder.Services.AddSingleton<AuthService>(auth);
 builder.Services.AddSingleton<ConfigService>();
-builder.Services.AddSingleton<PomuService>();
+builder.Services.AddHostedService<PomuService>();
 builder.Services.AddSingleton<YouTubeService>();
 
 
