@@ -23,6 +23,7 @@ var auth = new AuthService();
 
 builder.Services.AddSingleton<AuthService>(auth);
 builder.Services.AddSingleton<ConfigService>();
+builder.Services.AddSingleton<YouTubeService>();
 
 
 var signingKey = new SymmetricSecurityKey(auth.AuthInfo.SecureKey);
