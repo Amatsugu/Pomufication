@@ -3,8 +3,8 @@ Description=Pomu
 After= nginx.service
 [Service]
 Type=simple
-User=ina
-Group=ina
+#User=ina
+#Group=ina
 SyslogIdentifier=Pomu
 ExecStart=/bin/bash /Sites/Pomufication/runPomu.sh
 #Environment=DOTNET_ROOT=/opt/rh/rh-dotnet31/root/usr/lib64/dotnet

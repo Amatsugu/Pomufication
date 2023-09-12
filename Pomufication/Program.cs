@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-using Pomu;
-
 using Pomufication.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,8 +21,8 @@ var auth = new AuthService();
 
 builder.Services.AddSingleton<AuthService>(auth);
 builder.Services.AddSingleton<ConfigService>();
-builder.Services.AddSingleton<YouTubeService>();
 builder.Services.AddHostedService<PomuService>();
+builder.Services.AddSingleton<YouTubeService>();
 
 
 var signingKey = new SymmetricSecurityKey(auth.AuthInfo.SecureKey);

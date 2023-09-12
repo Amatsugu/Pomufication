@@ -1,7 +1,6 @@
-﻿using Pomu;
-
-using Pomufication.Models;
+﻿using Pomufication.Models;
 using Pomufication.Models.Youtube;
+
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -16,7 +15,7 @@ public class PomuService : IHostedService
 	private readonly ILogger<PomuService> _logger;
 	private List<ActiveDownload> _activeDownloads;
 
-	private Timer _timer;
+	private Timer? _timer;
 
 	private bool _isSyncing;
 	private bool _disposedValue;
@@ -60,7 +59,7 @@ public class PomuService : IHostedService
 		var processInfo = new ProcessStartInfo
 		{
 			FileName = "streamlink",
-			Arguments = $"{url} best --stream-segment-timeout 60 --stream-timeout 360 --retry-streams 30 -o \"{filePath}\" {GetCoookieString()}",
+			Arguments = $"\"{url}\" best --stream-segment-timeout 60 --stream-timeout 360 --retry-streams 30 -o \"{filePath}\" {GetCoookieString()}",
 		};
 		var p = Process.Start(processInfo);
 		if (p == null)
@@ -201,14 +200,17 @@ public class PomuService : IHostedService
 		}
 	}
 
-	public void Start(CancellationToken cancellationToken)
-	{
-		_timer = StartTimer();
-	}
-
 	public Task StopAsync(CancellationToken cancellationToken)
 	{
-		_timer.Dispose();
+		_logger.LogInformation("Pomu Service Stopping...");
+		_timer?.Dispose();
+		return Task.CompletedTask;
+	}
+
+	public Task StartAsync(CancellationToken cancellationToken)
+	{
+		_logger.LogInformation("Pomu Service Starting...");
+		_timer = StartTimer();
 		return Task.CompletedTask;
 	}
 }

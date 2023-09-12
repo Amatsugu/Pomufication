@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using Pomu;
-
 using Pomufication.Models;
 using Pomufication.Services;
 
@@ -20,14 +18,18 @@ public class HomeController : Controller
 
 	[HttpGet]
 	[Authorize]
-	public async Task<IActionResult> IndexAsync()
+	public IActionResult Index([FromServices] AuthService authService)
 	{
-		return View();
+
+		return View("Index");
 	}
 
 	[HttpGet("login")]
 	public IActionResult Login([FromQuery] string? returnUrl, [FromQuery] string? code, [FromServices] AuthService authService)
 	{
+#if DEBUG
+		code = authService.GetLoginCode();
+#endif
 		if (code == null)
 			goto Login;
 		var token = authService.ExchangeCode(code);
