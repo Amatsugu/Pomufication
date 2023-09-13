@@ -43,7 +43,17 @@ public class YouTubeService
 		var info = ReadChannelInfo(json);
 		return info;
 	}
-	
+
+	public async Task<ChannelInfo?> GetChannelInfoFromUrlAsync(string url)
+	{
+		var html = await url.GetStringAsync();
+		var json = ParseChannelData(html);
+		if (json == null)
+			return null;
+		var info = ReadChannelInfo(json);
+		return info;
+	}
+
 	public async Task<List<ChannelInfo>> SearchChannelsAsync(string query)
 	{
 		throw new NotImplementedException();
