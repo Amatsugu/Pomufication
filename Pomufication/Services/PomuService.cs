@@ -42,9 +42,9 @@ public class PomuService : IHostedService
 
 	private async Task<Process> StartStreamlinkAsync(string url)
 	{
-		var video = await _youTube.GetVideoFromUrlAsync(url);
+		//var video = await _youTube.GetVideoFromUrlAsync(url);
 
-		var fileName = CleanTitle(video);
+		var fileName = Path.GetFileName(url); //CleanTitle(video);
 
 		var filePath = Config.DataDirectory ?? "";
 
@@ -59,7 +59,7 @@ public class PomuService : IHostedService
 		var processInfo = new ProcessStartInfo
 		{
 			FileName = "streamlink",
-			Arguments = $"\"{url}\" best --stream-segment-timeout 60 --stream-timeout 360 --retry-streams 30 -o \"{filePath}\" {GetCoookieString()}",
+			Arguments = $"\"{url}\" best --stream-segment-timeout 60 --stream-timeout 360 --retry-streams 30 -o \"{filePath}\"",
 		};
 		var p = Process.Start(processInfo);
 		if (p == null)
@@ -148,8 +148,7 @@ public class PomuService : IHostedService
 			}
 			_logger.LogInformation("Checking for streams: {channel.Name}", channel.Name);
 			var upcomingStreams = await _youTube.GetUpcomingStreamsAsync(channel.Id);
-			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)))
-				.ToList();
+			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)));
 
 			if (matchingStreams.Any())
 				foundStreams.AddRange(matchingStreams.Select(v => v.Url));
