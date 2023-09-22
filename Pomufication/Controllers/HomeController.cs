@@ -18,9 +18,8 @@ public class HomeController : Controller
 
 	[HttpGet]
 	[Authorize]
-	public IActionResult Index([FromServices] AuthService authService)
+	public IActionResult Index()
 	{
-
 		return View("Index");
 	}
 

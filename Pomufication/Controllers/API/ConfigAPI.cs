@@ -43,16 +43,17 @@ public class ConfigAPI : ControllerBase
 		return Ok();
 	}
 
-	[HttpPost("channel/{id}/add")]
-	public async Task<IActionResult> AddChannelAsync(string id)
+	[HttpPost("channel/add")]
+	public async Task<IActionResult> AddChannelAsync([FromQuery] string url)
 	{
-		var channel = await _youTubeService.GetChannelInfoAsync(id);
+		var channel = await _youTubeService.GetChannelInfoFromUrlAsync(url);
+		var display = Path.GetFileName(url);
 		if (channel == null)
-			return Problem(title: $"The channel '{id}' could not be found", statusCode: StatusCodes.Status400BadRequest);
-		var channelConfig = new ChannelConfig(id);
+			return Problem(title: $"The channel '{display}' could not be found", statusCode: StatusCodes.Status400BadRequest);
+		var channelConfig = new ChannelConfig(channel.Id);
 		var cfg = _configService.Config;
-		if(cfg.Channels.Any(cfg => cfg.ChannelId == id))
-			return Problem(title: $"The channel '{id}' already exists", statusCode: StatusCodes.Status400BadRequest);
+		if(cfg.Channels.Any(cfg => cfg.ChannelId == channel.Id))
+			return Problem(title: $"The channel '{channel.Id}' already exists", statusCode: StatusCodes.Status400BadRequest);
 
 		cfg.Channels.Add(channelConfig);
 		_configService.SetConfig(cfg);
