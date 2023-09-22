@@ -2,5 +2,5 @@
 
 public record VideoInfo(string Id, string Title, ChannelInfo Channel)
 {
-	public string Url => $"https://youtube.com/watch?=${Id}";
+	public string Url => $"https://youtube.com/watch?v=${Id}";
 };
