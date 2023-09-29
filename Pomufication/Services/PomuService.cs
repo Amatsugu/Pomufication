@@ -40,11 +40,9 @@ public class PomuService : IHostedService
 		return _youTube.SearchChannelsAsync(query);
 	}
 
-	private async Task<Process> StartStreamlinkAsync(string url)
+	private Process StartStreamlink(VideoInfo info)
 	{
-		//var video = await _youTube.GetVideoFromUrlAsync(url);
-
-		var fileName = Path.GetFileName(url); //CleanTitle(video);
+		var fileName = CleanTitle(info);
 
 		var filePath = Config.DataDirectory ?? "";
 
@@ -59,11 +57,9 @@ public class PomuService : IHostedService
 		var processInfo = new ProcessStartInfo
 		{
 			FileName = "streamlink",
-			Arguments = $"\"{url}\" best --stream-segment-timeout 60 --stream-timeout 360 --retry-streams 30 -o \"{filePath}\"",
+			Arguments = $"\"{info.Url}\" best --stream-segment-timeout 60 --stream-timeout 360 --retry-streams 30 -o \"{filePath}\"",
 		};
-		var p = Process.Start(processInfo);
-		if (p == null)
-			throw new Exception("Failed to start streamlink");
+		var p = Process.Start(processInfo) ?? throw new Exception("Failed to start streamlink");
 		return p;
 	}
 
@@ -77,7 +73,16 @@ public class PomuService : IHostedService
 
 	private static string CleanTitle(VideoInfo video)
 	{
-		return $"{video.Channel.Name}_{video.Id}";
+		var cleanName = video.Title.Replace("\\", "")
+			.Replace("/", "")
+			.Replace("*", "")
+			.Replace("?", "")
+			.Replace("\"", "")
+			.Replace("<", "")
+			.Replace(">", "")
+			.Replace("|", "")
+			.Replace(":", "");
+		return $"{video.Channel.Name}_{video.Id}_{cleanName}";
 	}
 
 	public void SetConfig(PomuConfig config)
@@ -96,18 +101,18 @@ public class PomuService : IHostedService
 			var streams = await CheckForNewStreams();
 			for (int i = 0; i < streams.Count; i++)
 			{
-				var url = streams[i];
+				var streamInfo = streams[i];
 				try
 				{
-					if (_activeDownloads.Any(d => d.Url == url))
+					if (_activeDownloads.Any(d => d.Url == streamInfo.Url))
 						continue;
-					_logger.LogInformation("Starting download of {url}", url);
-					var download = await StartStreamlinkAsync(url);
-					_activeDownloads.Add(new ActiveDownload(url, download));
+					_logger.LogInformation("Starting download of {url}", streamInfo);
+					var download = StartStreamlink(streamInfo);
+					_activeDownloads.Add(new ActiveDownload(streamInfo.Url, download));
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, "Failed to donwload stream. {url}", url);
+					_logger.LogError(ex, "Failed to donwload stream. {url}", streamInfo);
 				}
 			}
 
@@ -131,9 +136,9 @@ public class PomuService : IHostedService
 		}
 	}
 
-	public async Task<List<string>> CheckForNewStreams()
+	public async Task<List<VideoInfo>> CheckForNewStreams()
 	{
-		var foundStreams = new List<string>();
+		var foundStreams = new List<VideoInfo>();
 
 		for (int i = 0; i < Config.Channels.Count; i++)
 		{
@@ -151,7 +156,7 @@ public class PomuService : IHostedService
 			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)));
 
 			if (matchingStreams.Any())
-				foundStreams.AddRange(matchingStreams.Select(v => v.Url));
+				foundStreams.AddRange(matchingStreams);
 			await Task.Delay(100);
 		}
 
