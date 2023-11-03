@@ -1,14 +1,15 @@
+import argparse
 import json
 import logging
+import os
 import re
 import sys
 import time
-import argparse
 from datetime import datetime
-from shlex import split as shlex_split
-from shutil import which
+from shutil import which, copy
 
 from apscheduler.schedulers.background import BackgroundScheduler
+# from pynput.keyboard import Listener, Key, KeyCode
 
 import browser
 from scheduler import Scheduler
@@ -19,6 +20,11 @@ STREAMLINK = which("streamlink")
 
 INVALID_CHARS = ['/', '\\', '\0', '`', '*', '|', ':', ':', '&']
 REGEX_CONVERSIONS = {0: 2, 1: 8, 4: 16, 5: 64, 8: 512}
+
+
+class FirstRun(Exception):
+    def __init__(self,):
+        self.message = "Program ran for the first time. Please edit your config.json and run this again"
 
 
 class LoggingFormatter(logging.Formatter):
@@ -83,12 +89,12 @@ class Downloader:
         self.scheduler = Scheduler(logger)
         self.active_downloads = {}
         self.active_ids = set()
-        self.cfg = load_config()
+        self.cfg_path = check_config_file()
+        self.cfg = load_config(self.cfg_path)
         self.dl_path = self.cfg['DataDirectory']
 
-
     def check_channels(self):
-        self.cfg = load_config()
+        self.cfg = load_config(self.cfg_path)
         for channel in self.cfg['Channels']:
             if channel['Enabled'] is False:
                 continue
@@ -96,9 +102,14 @@ class Downloader:
             filters = channel['FilterKeywords']
             self.check_single_channel(channel_id, filters)
 
-
     def parse_usr_link(self, _link):
-        logger.info("Parsing user link from arg")
+        m1 = re.match(r'https?://(?:www\.)?youtube\.com/watch', _link)
+        m2 = re.match(r'https?://youtu\.be/', _link)
+        if m1 is None and m2 is None:
+            print('Invalid link.')
+            return
+
+        logger.info("Parsing user link")
 
         page = browser.fetch_yt_page(_link)
 
@@ -115,7 +126,6 @@ class Downloader:
                   datetime.fromtimestamp(start_date))
 
         self.streamlink(ch_name, title, video_id, start_date)
-
 
     def checks_helper(self, info: Info, filters:list):
         if not self.filter_stream(info.title, filters):
@@ -159,7 +169,6 @@ class Downloader:
                 info = Info(channel_name, elem[0], elem[1], elem[2])
                 self.checks_helper(info, filters)
 
-
     def filter_stream(self, title, filters):
         for _f in filters:
             if not _f['Enabled']:
@@ -169,29 +178,26 @@ class Downloader:
                 return True
         return False
 
-
     def filter_stream_helper(self, _filter, title):
         _type = _filter['Type']
         if _type == 0:
             return match_words(title, _filter['Filters'], _filter["Comparison"])
         return match_regex(title, _filter['Filters'], _filter["RegexOptions"])
 
-
     def streamlink(self, channel, title, video_id, startTimne):
         logger.info("Queuing streamlink child process for %s", channel)
-        fname = sanitize(f"{channel} - {title}")
-        link = f"https://www.youtube.com/watch?v={video_id}"
-        cmd = f"{STREAMLINK} {link} best --stream-segment-timeout 60 \
-                --player-external-http-continuous no --stream-timeout 360 \
-                --retry-streams 30 -o \"{self.dl_path}/{fname}.mkv\""
+        fname = sanitize(f"[{video_id}] {channel} - {title}")
+        path = f"{self.dl_path}/{fname}"
 
-        self.scheduler.create_process_order(video_id, startTimne, shlex_split(cmd), fname)
+        self.scheduler.create_process_order(video_id, fname, path, startTimne)
+
 
 def match_words(name: str, words: list, comparison: int) -> bool:
     if comparison % 2 == 1:
         flag_options = re.IGNORECASE
     else:
         flag_options = re.NOFLAG
+
     for pat in words:
         _ret = re.findall(pat, name, flags=flag_options)
         if len(_ret) > 0:
@@ -224,12 +230,34 @@ def sanitize(value: str) -> str:
         return m.group(1)
     return value
 
-def load_config() -> dict :
-    path = "config.json"
+def load_config(path:str) -> dict :
     with open(path, "r", encoding="utf-8") as cfg:
         data = json.load(cfg)
         return data
 
+def check_config_file() -> str:
+    if sys.platform == 'win32':
+        path = os.path.join(os.getenv('USERPROFILE'), 'Documents')
+    else:
+        path = os.getenv('XDG_CONFIG_HOME')
+        if path is None:
+            path = os.path.expanduser('.config')
+
+    if os.path.exists(os.path.join(path, 'Pomufication')) is False:
+        os.mkdir(os.path.join(path, 'Pomufication'))
+    path = os.path.join(path, 'Pomufication')
+
+    try:
+        if os.path.exists(os.path.join(path, 'config.json')) is False:
+            copy('config_example.json', os.path.join(path, 'config.json'))
+            raise FirstRun
+    except FirstRun:
+        print(f'Config file created at {path}. Please edit it and restart the program.')
+        sys.exit(1)
+
+    return os.path.join(path, 'config.json')
+
+TZ='Atlantic/Azores'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -238,11 +266,19 @@ if __name__ == '__main__':
 
 
     app = Downloader()
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler({'apscheduler.timezone': TZ})
     scheduler.add_job(app.check_channels, 'interval', minutes=30)
     scheduler.add_job(app.scheduler.check_childs, 'interval', minutes=5)
     scheduler.start()
     logger.info("Started pomufication.")
+
+    # def do_input(key):
+    #     if key == KeyCode.from_char('l'):
+    #         link = input('Please insert the link: ')
+    #         app.parse_usr_link(link[1:])
+    #
+    # listener = Listener(on_release=do_input)
+    # listener.start()
 
     try:
         app.check_channels()
