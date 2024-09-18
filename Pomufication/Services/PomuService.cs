@@ -188,7 +188,7 @@ public class PomuService : IHostedService
 			{
 				_logger.LogError(ex, "Failed to load streams for {channel}", channelConfig.ChannelId);
 			}
-			await Task.Delay(200);
+			await Task.Delay(TimeSpan.FromSeconds(1));
 		}
 
 		return foundStreams;
