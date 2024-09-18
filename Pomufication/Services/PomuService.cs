@@ -167,20 +167,27 @@ public class PomuService : IHostedService
 		for (int i = 0; i < Config.Channels.Count; i++)
 		{
 			var channelConfig = Config.Channels[i];
-			if (!channelConfig.Enabled)
-				continue;
-			var channel = await _youTube.GetChannelInfoAsync(channelConfig.ChannelId);
-			if (channel == null)
+			try
 			{
-				_logger.LogWarning("Could not find a channel with id '{Id}'. Skipping...", channelConfig.ChannelId);
-				continue;
-			}
-			_logger.LogInformation("Checking for streams: {channel.Name}", channel.Name);
-			var upcomingStreams = await _youTube.GetUpcomingStreamsAsync(channel.Id);
-			var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)));
+				if (!channelConfig.Enabled)
+					continue;
+				var channel = await _youTube.GetChannelInfoAsync(channelConfig.ChannelId);
+				if (channel == null)
+				{
+					_logger.LogWarning("Could not find a channel with id '{Id}'. Skipping...", channelConfig.ChannelId);
+					continue;
+				}
+				_logger.LogInformation("Checking for streams: {channel.Name}", channel.Name);
+				var upcomingStreams = await _youTube.GetUpcomingStreamsAsync(channel.Id);
+				var matchingStreams = upcomingStreams.Where(v => channelConfig.FilterKeywords.All(k => k.Match(v.Title)));
 
-			if (matchingStreams.Any())
-				foundStreams.AddRange(matchingStreams);
+				if (matchingStreams.Any())
+					foundStreams.AddRange(matchingStreams);
+			}
+			catch(Exception ex)
+			{
+				_logger.LogError(ex, "Failed to load streams for {channel}", channelConfig.ChannelId);
+			}
 			await Task.Delay(200);
 		}
 
