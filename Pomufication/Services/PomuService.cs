@@ -15,6 +15,8 @@ public class PomuService : IHostedService
 	private readonly ILogger<PomuService> _logger;
 	private List<ActiveDownload> _activeDownloads;
 
+	private List<VideoInfo> _pendingDownloads;
+
 	private Timer? _timer;
 
 	private bool _isSyncing;
@@ -25,6 +27,7 @@ public class PomuService : IHostedService
 		_youTube = youTube;
 		_logger = logger;
 		_activeDownloads = new List<ActiveDownload>();
+		_pendingDownloads = new List<VideoInfo>();
 		Config = LoadConfig();
 	}
 
@@ -32,7 +35,7 @@ public class PomuService : IHostedService
 
 	private Timer StartTimer()
 	{
-		return new Timer(Sync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+		return new Timer(Sync, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 	}
 
 	public Task<List<ChannelInfo>> SearchChannels(string query, int maxResults = 50)
@@ -98,33 +101,9 @@ public class PomuService : IHostedService
 		try
 		{
 			_isSyncing = true;
-			var streams = await CheckForNewStreams();
-			for (int i = 0; i < streams.Count; i++)
-			{
-				var streamInfo = streams[i];
-				try
-				{
-					if (_activeDownloads.Any(d => d.Url == streamInfo.Url))
-						continue;
-					_logger.LogInformation("Starting download of {url}", streamInfo);
-					var download = StartStreamlink(streamInfo);
-					_activeDownloads.Add(new ActiveDownload(streamInfo.Url, download));
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, "Failed to donwload stream. {url}", streamInfo);
-				}
-			}
-
-			for (int i = 0; i < _activeDownloads.Count; i++)
-			{
-				var download = _activeDownloads[i];
-				if (download.Process.HasExited)
-				{
-					download.Process.Dispose();
-					_activeDownloads.RemoveAt(i--);
-				}
-			}
+			
+			await ProcessCheckingForStreamsAsync();
+			ProcessDownloadQueue();
 		}
 		catch (Exception ex)
 		{
@@ -133,6 +112,51 @@ public class PomuService : IHostedService
 		finally
 		{
 			_isSyncing = false;
+		}
+	}
+
+	private async Task ProcessCheckingForStreamsAsync()
+	{
+		var streams = await CheckForNewStreams();
+		for (int i = 0; i < streams.Count; i++)
+		{
+			var streamInfo = streams[i];
+			if (_activeDownloads.Any(d => d.Url == streamInfo.Url))
+				continue;
+			_logger.LogInformation("Queueing download of {url}", streamInfo);
+			_pendingDownloads.Add(streamInfo);
+		}
+	}
+
+	private void ProcessDownloadQueue()
+	{
+		for (int i = 0; i < _activeDownloads.Count; i++)
+		{
+			var download = _activeDownloads[i];
+			if (download.Process.HasExited)
+			{
+				download.Process.Dispose();
+				_activeDownloads.RemoveAt(i--);
+			}
+		}
+		for (int i = 0; i < _pendingDownloads.Count; i++)
+		{
+			var stream = _pendingDownloads[i];
+			var eta = stream.StartTime - DateTimeOffset.Now;
+			if (Math.Abs(eta.TotalMinutes) > 30)
+				continue;
+			try
+			{
+				var dl = StartStreamlink(stream);
+				_activeDownloads.Add(new(stream.Url, dl));
+				_pendingDownloads.RemoveAt(i--);
+				_logger.LogInformation("Starting download of {url}", stream.Url);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to donwload stream. {url}", stream.Url);
+			}
+
 		}
 	}
 
@@ -157,7 +181,7 @@ public class PomuService : IHostedService
 
 			if (matchingStreams.Any())
 				foundStreams.AddRange(matchingStreams);
-			await Task.Delay(100);
+			await Task.Delay(200);
 		}
 
 		return foundStreams;

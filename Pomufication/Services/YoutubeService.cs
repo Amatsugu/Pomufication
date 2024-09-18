@@ -144,12 +144,11 @@ public class YouTubeService
 			var videoId = videoItem["videoId"]!.GetValue<string>();
 			var title = videoItem["title"]!["simpleText"]!.GetValue<string>();
 			var startTimeInfo = videoItem["upcomingEventData"]!["startTime"]!.GetValue<string>();
+			var start = DateTimeOffset.Now;
 			if(int.TryParse(startTimeInfo, out var timeInt))
-			{
-				var start = DateTimeOffset.UnixEpoch.AddSeconds(timeInt).LocalDateTime;
-			}
+				start = DateTimeOffset.UnixEpoch.AddSeconds(timeInt).LocalDateTime;
 
-			results.Add(new VideoInfo(videoId, title, channelInfo));
+			results.Add(new VideoInfo(videoId, title, channelInfo, start));
 		}
 
 		return results;
