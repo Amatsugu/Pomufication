@@ -239,9 +239,9 @@ def check_config_file() -> str:
     if sys.platform == 'win32':
         path = os.path.join(os.getenv('USERPROFILE'), 'Documents')
     else:
-        path = os.getenv('XDG_CONFIG_HOME')
-        if path is None:
-            path = os.path.expanduser('.config')
+        path = "/home/ina/.config"
+        #if path is None:
+        #    path = os.path.expanduser('.config')
 
     if os.path.exists(os.path.join(path, 'Pomufication')) is False:
         os.mkdir(os.path.join(path, 'Pomufication'))
@@ -257,7 +257,7 @@ def check_config_file() -> str:
 
     return os.path.join(path, 'config.json')
 
-TZ='Atlantic/Azores'
+TZ='America/New_York'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
