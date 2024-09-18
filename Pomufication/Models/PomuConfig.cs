@@ -63,7 +63,7 @@ public class Keyword
 			return true;
 		return Type switch
 		{
-			KeywordType.Word => Filters.Any(f => value.Contains(f, Comparison)),
+			KeywordType.Word => Filters.Any(f => value.Contains(f, StringComparison.OrdinalIgnoreCase)),
 			KeywordType.Regex => Filters.Any(f => Regex.Match(value, f, RegexOptions).Success),
 			_ => false
 		};
