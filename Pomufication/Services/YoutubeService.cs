@@ -11,13 +11,8 @@ using System.Text.Json.Nodes;
 
 namespace Pomufication.Services;
 
-public class YouTubeService
+public class YouTubeService(ILogger<YouTubeService> logger)
 {
-	public YouTubeService()
-	{
-
-	}
-
 	public string GetChannelUrl(string channelId)
 	{
 		return $"https://youtube.com/channel/{channelId}";
@@ -28,15 +23,26 @@ public class YouTubeService
 		return $"https://youtube.com/{username}";
 	}
 
-	private Task<string> LoadChannelPageAsync(string id)
+	private async Task<string?> LoadChannelPageAsync(string id)
 	{
 		var url = GetChannelUrl(id);
-		return url.GetStringAsync();
+		try
+		{
+			return await url.GetStringAsync();
+		}
+		catch (FlurlHttpException ex) 
+		{
+			var message = await ex.GetResponseStringAsync();
+			logger.LogError(ex, "Failed to load channel page {status}.\n{messsage}", ex.StatusCode, message);
+			return null;
+		}
 	}
 
 	public async Task<ChannelInfo?> GetChannelInfoAsync(string channelId)
 	{
 		var html = await LoadChannelPageAsync(channelId);
+		if(html == null) 
+			return null;
 		var json = ParseChannelData(html);
 		if(json == null)
 			return null;
