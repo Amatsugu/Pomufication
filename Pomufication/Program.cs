@@ -1,3 +1,6 @@
+using Flurl.Http;
+using Flurl.Http.Newtonsoft;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -5,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Pomufication.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+FlurlHttp.Clients.UseNewtonsoft();
 
 // Add services to the container.
 #if DEBUG
